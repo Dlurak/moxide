@@ -9,3 +9,4 @@ serde_yaml = "0.9"
 clap = { version = "4.5.16", features = ["derive"] }
 dirs = "5.0.1"
 colored = "2.1.0"
+tmux_interface = "0.3.2"

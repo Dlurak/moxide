@@ -1,2 +1,2 @@
-pub mod table;
 pub mod heading;
+pub mod table;

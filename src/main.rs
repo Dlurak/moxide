@@ -1,9 +1,10 @@
 mod cli;
 mod commands;
-mod widgets;
 mod directories;
 mod helpers;
 mod init;
+mod macros;
+mod widgets;
 
 use clap::Parser;
 

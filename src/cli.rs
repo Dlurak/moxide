@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 
+// TODO: Make a `cli`directory with multiple files
+
 /// A CLI for tmux session management
 #[derive(Parser, Debug)]
 #[clap(version)]
@@ -21,14 +23,15 @@ pub enum Commands {
 
 #[derive(Parser, Debug)]
 pub struct DirectoryCli {
-        #[command(subcommand)]
-        pub action: DirectoryCommands,
+    #[command(subcommand)]
+    pub action: DirectoryCommands,
 }
 
 #[derive(Subcommand, Debug)]
 pub enum DirectoryCommands {
+    #[command(alias = "ls")]
     List(ListArgs),
-    Pick
+    Start(StartDirectoryArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -36,4 +39,16 @@ pub struct ListArgs {
     /// Show minimal output for scripts
     #[arg(short, long, default_value_t = false)]
     pub minimal: bool,
+}
+
+#[derive(Parser, Debug)]
+pub struct StartDirectoryArgs {
+    /// The directory to start the session in
+    pub directory: String,
+
+    #[arg(short, long, default_value_t = false)]
+    pub detached: bool,
+
+    #[arg(short, long)]
+    pub name: Option<String>,
 }

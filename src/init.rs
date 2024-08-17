@@ -1,7 +1,7 @@
 use crate::helpers::get_config_dir;
 use std::fs;
 use std::io;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn create_config_dir() -> io::Result<PathBuf> {
     let config_dir = get_config_dir();
@@ -10,7 +10,7 @@ fn create_config_dir() -> io::Result<PathBuf> {
     Ok(config_dir)
 }
 
-fn create_config_files(config_path: &PathBuf) -> io::Result<()> {
+fn create_config_files(config_path: &Path) -> io::Result<()> {
     fs::create_dir(config_path.join("projects"))?;
     fs::create_dir(config_path.join("templates"))?;
     fs::File::create(config_path.join("directories.yaml"))?;
