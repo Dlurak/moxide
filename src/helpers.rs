@@ -1,6 +1,8 @@
 use crate::exit;
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+};
 
 pub fn get_config_dir() -> std::path::PathBuf {
     match dirs::config_dir() {
@@ -44,6 +46,10 @@ impl<T, E> Exit<T> for Result<T, E> {
     fn exit<M: std::fmt::Display>(self, code: i32, msg: M) -> T {
         self.unwrap_or_else(|_| exit!(code, "{}", msg))
     }
+}
+
+pub fn runs_in_tmux() -> bool {
+    env::var("TMUX").is_ok()
 }
 
 #[cfg(test)]

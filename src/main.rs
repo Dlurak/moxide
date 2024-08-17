@@ -5,6 +5,7 @@ mod helpers;
 mod init;
 mod macros;
 mod widgets;
+mod tmux;
 
 use clap::Parser;
 
