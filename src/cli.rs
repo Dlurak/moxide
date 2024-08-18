@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 // TODO: Make a `cli`directory with multiple files
 
@@ -16,11 +17,15 @@ pub enum Commands {
     ///
     /// This command will initialize your config directories.
     Init,
-    /// Manage tmux sessions related to directories
+    /// Manage directories in the context of muxmate and tmux
     ///
     /// This command provides functionalities to interact with tmux sessions based on directories.
     #[command(alias = "dir", alias = "dirs", alias = "directories")]
     Directory(DirectoryCli),
+    /// Manage templates in the context of muxmate and tmux
+    ///
+    /// This command provides functionalities to interact with tmux sessions based on templates
+    #[command(alias = "temp", alias = "templ")]
     Template(TemplateCli),
 }
 
@@ -75,5 +80,19 @@ pub enum TemplateCommands {
 
 #[derive(Parser, Debug)]
 pub struct StartTemplateArgs {
-    pub name: String,
+    pub template_name: String,
+
+    /// Start the session detached
+    #[arg(short, long, default_value_t = false)]
+    pub detached: bool,
+
+    /// The directory to start it in
+    #[arg(long, alias = "dir")]
+    pub directory: Option<PathBuf>,
+
+    /// Specify the name of the tmux session
+    ///
+    /// Optionally provide a name for the session. If not provided, it will be either the name from the configuration or from the directory
+    #[arg(short, long)]
+    pub name: Option<String>,
 }

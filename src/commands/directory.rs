@@ -1,7 +1,7 @@
 use crate::{
     cli::{DirectoryCli, DirectoryCommands, ListArgs, StartDirectoryArgs},
     directories::{self, Directory},
-    helpers::{absolute_path, Exit},
+    helpers::{absolute_path, dir_name, Exit},
     tmux::{attach, session_exists},
     widgets::{heading::Heading, table::fmt_table},
 };
@@ -81,12 +81,7 @@ fn resolve_dir_path(cli_args: &StartDirectoryArgs) -> (String, PathBuf) {
         None => {
             let relative_path = PathBuf::from(&cli_args.directory);
             let path = absolute_path(&relative_path).exit(1, "The path could not be generated");
-            let name = user_name.unwrap_or(
-                path.file_name()
-                    .and_then(|os_string| os_string.to_str())
-                    .map(|str| str.to_string())
-                    .unwrap_or("".to_string()),
-            );
+            let name = user_name.unwrap_or(dir_name(&path));
 
             (name, path)
         }

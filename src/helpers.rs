@@ -57,6 +57,13 @@ pub fn runs_in_tmux() -> bool {
     env::var("TMUX").is_ok()
 }
 
+pub fn dir_name(path: &Path) -> String {
+    path.file_name()
+        .and_then(|os_string| os_string.to_str())
+        .map(|str| str.to_string())
+        .unwrap_or("".to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
