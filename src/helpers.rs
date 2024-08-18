@@ -47,6 +47,11 @@ impl<T, E> Exit<T> for Result<T, E> {
         self.unwrap_or_else(|_| exit!(code, "{}", msg))
     }
 }
+impl<T> Exit<T> for Option<T> {
+    fn exit<M: std::fmt::Display>(self, code: i32, msg: M) -> T {
+        self.unwrap_or_else(|| exit!(code, "{}", msg))
+    }
+}
 
 pub fn runs_in_tmux() -> bool {
     env::var("TMUX").is_ok()

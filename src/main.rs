@@ -4,8 +4,9 @@ mod directories;
 mod helpers;
 mod init;
 mod macros;
-mod widgets;
+mod templates;
 mod tmux;
+mod widgets;
 
 use clap::Parser;
 
@@ -15,5 +16,6 @@ fn main() {
     match args.cmd {
         cli::Commands::Init => commands::init::init_handler(),
         cli::Commands::Directory(args) => commands::directory::directory_handler(args),
+        cli::Commands::Template(args) => commands::template::template_handler(args),
     }
 }

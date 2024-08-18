@@ -1,15 +1,13 @@
 use crate::helpers::runs_in_tmux;
 use std::borrow::Cow;
-use tmux_interface::{Error, HasSession, Tmux, TmuxCommand, TmuxOutput};
+use tmux_interface::{Error, HasSession, Tmux, TmuxCommand};
 
-pub fn attach<'a, S: Into<Cow<'a, str>>>(name: S) -> Result<TmuxOutput, Error> {
-    let command: TmuxCommand = if runs_in_tmux() {
+pub fn attach<'a, S: Into<Cow<'a, str>>>(name: S) -> TmuxCommand<'a> {
+    if runs_in_tmux() {
         TmuxCommand::switch_client().target_session(name).into()
     } else {
         TmuxCommand::attach_session().target_session(name).into()
-    };
-
-    Tmux::new().add_command(command).output()
+    }
 }
 
 pub fn session_exists<'a, S: Into<Cow<'a, str>>>(name: S) -> Result<bool, Error> {

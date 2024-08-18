@@ -6,7 +6,7 @@ use crate::{
     widgets::{heading::Heading, table::fmt_table},
 };
 use std::{collections::HashMap, path::PathBuf};
-use tmux_interface::{HasSession, NewSession, Tmux};
+use tmux_interface::{NewSession, Tmux};
 
 pub fn directory_handler(args: DirectoryCli) {
     match args.action {
@@ -60,7 +60,10 @@ fn start_handler(args: StartDirectoryArgs) {
     }
 
     if !args.detached {
-        attach(&name).exit(1, "Could not switch to the Tmux session");
+        Tmux::new()
+            .add_command(attach(&name))
+            .output()
+            .exit(1, "Could not switch to the Tmux session");
     }
 }
 

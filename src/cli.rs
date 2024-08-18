@@ -21,6 +21,7 @@ pub enum Commands {
     /// This command provides functionalities to interact with tmux sessions based on directories.
     #[command(alias = "dir", alias = "dirs", alias = "directories")]
     Directory(DirectoryCli),
+    Template(TemplateCli),
 }
 
 #[derive(Parser, Debug)]
@@ -57,4 +58,22 @@ pub struct StartDirectoryArgs {
     /// Optionally provide a name for the session. If not provided, it will be either the name from the configuration or from the directory
     #[arg(short, long)]
     pub name: Option<String>,
+}
+
+#[derive(Parser, Debug)]
+pub struct TemplateCli {
+    #[command(subcommand)]
+    pub action: TemplateCommands,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum TemplateCommands {
+    #[command(alias = "ls")]
+    List(ListArgs),
+    Start(StartTemplateArgs),
+}
+
+#[derive(Parser, Debug)]
+pub struct StartTemplateArgs {
+    pub name: String,
 }
