@@ -16,3 +16,14 @@ pub fn session_exists<'a, S: Into<Cow<'a, str>>>(name: S) -> Result<bool, Error>
         .output()
         .map(|x| x.success())
 }
+
+#[macro_export]
+macro_rules! conditional_command {
+    ($condition:expr, $command:expr) => {
+        if $condition {
+            $command.into()
+        } else {
+            TmuxCommand::new()
+        }
+    };
+}

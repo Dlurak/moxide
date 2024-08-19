@@ -9,6 +9,7 @@ use tmux_interface::{Tmux, TmuxCommand};
 #[derive(Deserialize, Debug)]
 pub struct Template {
     pub name: String,
+    pub hidden: Option<bool>,
     pub windows: Vec<Window>,
 }
 

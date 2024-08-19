@@ -1,12 +1,8 @@
 use crate::{
-    cli::{DirectoryCli, DirectoryCommands, ListArgs, StartDirectoryArgs},
-    directories::{self, Directory},
-    helpers::{absolute_path, dir_name, Exit},
-    tmux::{attach, session_exists},
-    widgets::{heading::Heading, table::fmt_table},
+    cli::directory::{DirectoryCli, DirectoryCommands, ListDirectoryArgs, StartDirectoryArgs}, conditional_command, directories::{self, Directory}, helpers::{absolute_path, dir_name, Exit}, tmux::{attach, session_exists}, widgets::{heading::Heading, table::fmt_table}
 };
 use std::{collections::HashMap, path::PathBuf};
-use tmux_interface::{NewSession, Tmux};
+use tmux_interface::{NewSession, Tmux, TmuxCommand};
 
 pub fn directory_handler(args: DirectoryCli) {
     match args.action {
@@ -15,7 +11,7 @@ pub fn directory_handler(args: DirectoryCli) {
     }
 }
 
-fn list_handler(args: ListArgs) {
+fn list_handler(args: ListDirectoryArgs) {
     let config = directories::parse_directory_config();
     let categories = config.categories;
 
@@ -47,24 +43,21 @@ fn start_handler(args: StartDirectoryArgs) {
     let (name, path) = resolve_dir_path(&args);
     let exists = session_exists(&name).unwrap_or(false);
 
-    if !exists {
-        let new_session_cmd = NewSession::new()
+    let new_session_cmd = conditional_command!(
+        args.always_new_session || !exists,
+        NewSession::new()
             .start_directory(path.to_string_lossy())
             .detached()
             .session_name(&name)
-            .window_name(&name);
-        Tmux::new()
-            .add_command(new_session_cmd)
-            .output()
-            .exit(1, "Could not start Tmux-session");
-    }
+            .window_name(&name)
+    );
+    let attach_cmd = conditional_command!(!args.detached, attach(&name));
 
-    if !args.detached {
-        Tmux::new()
-            .add_command(attach(&name))
-            .output()
-            .exit(1, "Could not switch to the Tmux session");
-    }
+    Tmux::new()
+        .add_command(new_session_cmd)
+        .add_command(attach_cmd)
+        .output()
+        .exit(1, "Could not switch to the Tmux session");
 }
 
 fn resolve_dir_path(cli_args: &StartDirectoryArgs) -> (String, PathBuf) {
