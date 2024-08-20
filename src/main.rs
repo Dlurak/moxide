@@ -4,6 +4,7 @@ mod directories;
 mod helpers;
 mod init;
 mod macros;
+mod projects;
 mod templates;
 mod tmux;
 mod widgets;
@@ -17,5 +18,6 @@ fn main() {
         cli::Commands::Init => commands::init::init_handler(),
         cli::Commands::Directory(args) => commands::directory::directory_handler(args),
         cli::Commands::Template(args) => commands::template::template_handler(args),
+        cli::Commands::Project(args) => commands::project::project_handler(args),
     }
 }

@@ -4,7 +4,7 @@ use crate::{
     helpers::{absolute_path, dir_name, Exit},
     templates::{apply_template, parse_template_config},
     tmux::{attach, session_exists},
-    widgets::{heading::Heading, table::fmt_table},
+    widgets::{heading::Heading, table::Table},
 };
 use std::path::PathBuf;
 use tmux_interface::{NewSession, Tmux, TmuxCommand};
@@ -32,7 +32,7 @@ fn list_handler(args: ListTemplateArgs) {
             println!("{}", template.name);
         } else {
             println!("{}", Heading(template.name));
-            println!("{}", fmt_table(template.windows));
+            println!("{}", Table::from_iter(template.windows.iter()));
         }
     }
 }

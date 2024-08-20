@@ -34,16 +34,16 @@ impl fmt::Display for Directory {
     }
 }
 
-impl Table<String, String> for Directory {
-    fn table(&self) -> (String, String) {
-        let first_col = match (&self.icon, &self.name) {
+impl From<&Directory> for Table<String, String> {
+    fn from(value: &Directory) -> Self {
+        let first_col = match (&value.icon, &value.name) {
             (Some(icon), Some(name)) => format!("{} {}", icon, name),
             (Some(icon), None) => icon.clone(),
             (None, Some(name)) => name.clone(),
             (None, None) => "No name".to_string(),
         };
 
-        (first_col, self.path.display().to_string())
+        Self::from((first_col, value.path.display().to_string()))
     }
 }
 

@@ -1,7 +1,8 @@
 use crate::helpers::get_config_dir;
-use std::fs;
-use std::io;
-use std::path::{Path, PathBuf};
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 fn create_config_dir() -> io::Result<PathBuf> {
     let config_dir = get_config_dir();

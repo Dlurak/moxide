@@ -13,18 +13,27 @@ pub struct Template {
     pub windows: Vec<Window>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct Window {
     pub name: Option<String>,
     pub layout: Option<String>,
     pub panes: Vec<String>,
 }
 
-impl Table<String, String> for Window {
-    fn table(&self) -> (String, String) {
-        let name = self.name.clone().unwrap_or("No name".to_string());
+// TODO: Merge From<&Window> and From<Window>
+impl From<&Window> for Table<String, String> {
+    fn from(value: &Window) -> Self {
+        let name = value.name.clone().unwrap_or("No name".to_string());
 
-        (name, format!("{} Panes", self.panes.len()))
+        Self::from((name, format!("{} Panes", value.panes.len())))
+    }
+}
+
+impl From<Window> for Table<String, String> {
+    fn from(value: Window) -> Self {
+        let name = value.name.clone().unwrap_or("No name".to_string());
+
+        Self::from((name, format!("{} Panes", value.panes.len())))
     }
 }
 

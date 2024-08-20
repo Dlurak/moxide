@@ -1,10 +1,9 @@
 pub mod directory;
+pub mod project;
 pub mod template;
 
+use self::{directory::DirectoryCli, project::ProjectCli, template::TemplateCli};
 use clap::{Parser, Subcommand};
-use self::{directory::DirectoryCli, template::TemplateCli};
-
-// TODO: Make a `cli`directory with multiple files
 
 /// A CLI for tmux session management
 #[derive(Parser, Debug)]
@@ -30,4 +29,7 @@ pub enum Commands {
     /// This command provides functionalities to interact with tmux sessions based on templates
     #[command(alias = "temp", alias = "templ")]
     Template(TemplateCli),
+
+    #[command(alias = "proj", alias = "projects")]
+    Project(ProjectCli),
 }

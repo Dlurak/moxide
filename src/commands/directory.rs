@@ -1,5 +1,10 @@
 use crate::{
-    cli::directory::{DirectoryCli, DirectoryCommands, ListDirectoryArgs, StartDirectoryArgs}, conditional_command, directories::{self, Directory}, helpers::{absolute_path, dir_name, Exit}, tmux::{attach, session_exists}, widgets::{heading::Heading, table::fmt_table}
+    cli::directory::{DirectoryCli, DirectoryCommands, ListDirectoryArgs, StartDirectoryArgs},
+    conditional_command,
+    directories::{self, Directory},
+    helpers::{absolute_path, dir_name, Exit},
+    tmux::{attach, session_exists},
+    widgets::{heading::Heading, table::Table},
 };
 use std::{collections::HashMap, path::PathBuf};
 use tmux_interface::{NewSession, Tmux, TmuxCommand};
@@ -22,7 +27,7 @@ fn list_handler(args: ListDirectoryArgs) {
 
     for (key, value) in categories {
         println!("{}", Heading(key));
-        println!("{}", fmt_table(value));
+        println!("{}", Table::from_iter(value.iter()));
     }
 }
 
