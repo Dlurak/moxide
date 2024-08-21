@@ -3,7 +3,7 @@ use crate::{
     widgets::table::Table,
 };
 use serde::Deserialize;
-use std::{collections::HashMap, fmt, fs};
+use std::{fmt, fs};
 
 #[derive(Debug, Deserialize)]
 pub struct Directory {
@@ -34,8 +34,8 @@ impl fmt::Display for Directory {
     }
 }
 
-impl From<&Directory> for Table<String, String> {
-    fn from(value: &Directory) -> Self {
+impl From<Directory> for Table<String, String> {
+    fn from(value: Directory) -> Self {
         let first_col = match (&value.icon, &value.name) {
             (Some(icon), Some(name)) => format!("{} {}", icon, name),
             (Some(icon), None) => icon.clone(),
@@ -47,17 +47,10 @@ impl From<&Directory> for Table<String, String> {
     }
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Categories {
-    #[serde(flatten)]
-    pub categories: HashMap<String, Vec<Directory>>,
-}
-
-pub fn parse_directory_config() -> Categories {
+pub fn parse_directory_config() -> Vec<Directory> {
     let yaml_content = fs::read_to_string(get_config_dir().join("directories.yaml"))
         .exit(1, "Can't read directories config");
-    let categories: Categories = serde_yaml::from_str(&yaml_content)
-        .exit(1, "Can't parse the directories config, please correct it");
 
-    categories
+    serde_yaml::from_str(&yaml_content)
+        .exit(1, "Can't parse the directories config, please correct it")
 }

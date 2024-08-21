@@ -19,5 +19,6 @@ fn main() {
         cli::Commands::Directory(args) => commands::directory::directory_handler(args),
         cli::Commands::Template(args) => commands::template::template_handler(args),
         cli::Commands::Project(args) => commands::project::project_handler(args),
+        cli::Commands::List(args) => commands::list::list_handler(args),
     }
 }

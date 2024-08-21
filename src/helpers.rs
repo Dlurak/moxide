@@ -64,6 +64,13 @@ pub fn dir_name(path: &Path) -> String {
         .unwrap_or("".to_string())
 }
 
+pub fn format_name(user_fmt: &Option<String>, name: &str) -> String {
+    match user_fmt {
+        Some(fmt) => fmt.replace("{}", name),
+        None => name.to_string(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,8 +1,8 @@
 pub mod directory;
+pub mod list;
 pub mod project;
 pub mod template;
 
-use self::{directory::DirectoryCli, project::ProjectCli, template::TemplateCli};
 use clap::{Parser, Subcommand};
 
 /// A CLI for tmux session management
@@ -23,13 +23,15 @@ pub enum Commands {
     ///
     /// This command provides functionalities to interact with tmux sessions based on directories.
     #[command(alias = "dir", alias = "dirs", alias = "directories")]
-    Directory(DirectoryCli),
+    Directory(directory::DirectoryCli),
     /// Manage templates in the context of muxmate and tmux
     ///
     /// This command provides functionalities to interact with tmux sessions based on templates
     #[command(alias = "temp", alias = "templ")]
-    Template(TemplateCli),
+    Template(template::TemplateCli),
 
     #[command(alias = "proj", alias = "projects")]
-    Project(ProjectCli),
+    Project(project::ProjectCli),
+
+    List(list::ListCli),
 }

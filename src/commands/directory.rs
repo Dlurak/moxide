@@ -4,9 +4,9 @@ use crate::{
     directories::{self, Directory},
     helpers::{absolute_path, dir_name, Exit},
     tmux::{attach, session_exists},
-    widgets::{heading::Heading, table::Table},
+    widgets::table::Table,
 };
-use std::{collections::HashMap, path::PathBuf};
+use std::path::PathBuf;
 use tmux_interface::{NewSession, Tmux};
 
 pub fn directory_handler(args: DirectoryCli) {
@@ -17,31 +17,28 @@ pub fn directory_handler(args: DirectoryCli) {
 }
 
 fn list_handler(args: ListDirectoryArgs) {
-    let config = directories::parse_directory_config();
-    let categories = config.categories;
+    let dirs = directories::parse_directory_config();
 
     if args.minimal {
-        println!("{}", format_categories_minimal(&categories));
+        println!("{}", format_dirs_minimal(dirs));
         return;
     }
 
-    for (key, value) in categories {
-        println!("{}", Heading(key));
-        println!("{}", Table::from_iter(value.iter()));
-    }
+    let tables = dirs.into_iter().map(Table::from);
+    let table: Table<_, _> = tables.collect();
+    println!("{}", table);
 }
 
-fn format_categories_minimal(categories: &HashMap<String, Vec<Directory>>) -> String {
-    let categories_formatted: Vec<_> = categories
-        .iter()
-        .map(move |(key, dirs)| {
-            let dirs_formatted: Vec<_> = dirs.iter().map(|x| x.to_string()).collect();
-            let dirs = dirs_formatted.join("\n");
-            format!("{}\n{}", key, dirs)
+fn format_dirs_minimal(dirs: Vec<Directory>) -> String {
+    let dirs_formatted: Vec<_> = dirs
+        .into_iter()
+        .map(|dir| {
+            let name = dir.name.unwrap_or("No name".to_string());
+            format!("\"{}\" {}", name, dir.path.display())
         })
         .collect();
 
-    categories_formatted.join("\n\n")
+    dirs_formatted.join("\n")
 }
 
 fn start_handler(args: StartDirectoryArgs) {
@@ -66,9 +63,8 @@ fn start_handler(args: StartDirectoryArgs) {
 }
 
 fn resolve_dir_path(cli_args: &StartDirectoryArgs) -> (String, PathBuf) {
-    let config = directories::parse_directory_config();
-    let dirs: Vec<_> = config.categories.values().flatten().collect();
-    let dir = dirs.iter().find(|&&d| d.get_name() == cli_args.directory);
+    let dirs = directories::parse_directory_config();
+    let dir = dirs.iter().find(|d| d.get_name() == cli_args.directory);
     let user_name = cli_args.name.clone();
 
     match dir {
