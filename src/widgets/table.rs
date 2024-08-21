@@ -1,4 +1,4 @@
-use std::{fmt, iter};
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Table<T: fmt::Display, U: fmt::Display> {
@@ -75,9 +75,11 @@ where
             .zip(values.iter())
             .map(|(key, value)| {
                 format!(
-                    "│ {} │ {} │",
-                    pad_str(key, ' ', key_width),
-                    pad_str(value, ' ', val_width)
+                    "│ {:<width$} │ {:<val_width$} │",
+                    key,
+                    value,
+                    width = key_width,
+                    val_width = val_width
                 )
             })
             .collect();
@@ -92,22 +94,5 @@ where
             formatted_rows.join("\n"),
             bottom_border,
         )
-    }
-}
-
-fn pad_str<T: Into<String>>(string: T, padder: char, len: usize) -> String {
-    let string = string.into();
-    let extra_len = len - string.len();
-    let pad_str: String = iter::repeat(padder).take(extra_len).collect();
-    format!("{}{}", string, pad_str)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_pad_str() {
-        assert_eq!(pad_str("hi", ' ', 5), "hi   ".to_string());
     }
 }

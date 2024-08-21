@@ -23,7 +23,25 @@ macro_rules! conditional_command {
         if $condition {
             $command.into()
         } else {
-            TmuxCommand::new()
+            tmux_interface::TmuxCommand::new()
         }
     };
+}
+
+fn private_get_unused_name(name: String, used: Option<u8>) -> String {
+    let new_name = match used {
+        Some(counter) => format!("{}({})", name, counter),
+        None => name.clone(),
+    };
+
+    if session_exists(&new_name).unwrap_or(false) {
+        let next_counter = used.unwrap_or(0) + 1;
+        private_get_unused_name(name, Some(next_counter))
+    } else {
+        new_name
+    }
+}
+
+pub fn get_unused_name(name: String) -> String {
+    private_get_unused_name(name, None)
 }

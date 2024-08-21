@@ -7,7 +7,7 @@ use crate::{
     widgets::{heading::Heading, table::Table},
 };
 use std::{collections::HashMap, path::PathBuf};
-use tmux_interface::{NewSession, Tmux, TmuxCommand};
+use tmux_interface::{NewSession, Tmux};
 
 pub fn directory_handler(args: DirectoryCli) {
     match args.action {

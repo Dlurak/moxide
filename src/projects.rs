@@ -5,11 +5,12 @@ use crate::{
     widgets::table::Table,
 };
 use serde::Deserialize;
-use std::fs;
+use std::{fs, path::PathBuf};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Project {
     pub name: String,
+    pub root_dir: PathBuf,
     pub setup: ProjectSetup,
 }
 
@@ -20,9 +21,9 @@ pub enum ProjectSetup {
     Windows(Vec<Window>),
 }
 
-impl From<ProjectSetup> for Table<String, String> {
-    fn from(value: ProjectSetup) -> Self {
-        let (template_name, windows) = match value {
+impl From<ProjectSetup> for Vec<Window> {
+    fn from(val: ProjectSetup) -> Self {
+        match val {
             ProjectSetup::Template(template_name) => {
                 let all_templates = parse_template_config();
                 let template = all_templates
@@ -30,10 +31,20 @@ impl From<ProjectSetup> for Table<String, String> {
                     .find(|t| t.name == template_name)
                     .unwrap_or_else(|| exit!(1, "Template {} could not be found", template_name));
 
-                (Some(template_name), template.windows)
+                template.windows
             }
-            ProjectSetup::Windows(windows) => (None, windows),
+            ProjectSetup::Windows(windows) => windows,
+        }
+    }
+}
+
+impl From<ProjectSetup> for Table<String, String> {
+    fn from(value: ProjectSetup) -> Self {
+        let template_name = match &value {
+            ProjectSetup::Template(template_name) => Some(template_name.clone()),
+            ProjectSetup::Windows(_) => None,
         };
+        let windows: Vec<Window> = value.into();
 
         let mut rows = Self::new(vec![(
             "Template".to_string(),
@@ -55,6 +66,7 @@ impl<'de> Deserialize<'de> for Project {
         #[derive(Deserialize)]
         struct RawProject {
             name: String,
+            root_dir: PathBuf,
             template: Option<String>,
             windows: Option<Vec<Window>>,
         }
@@ -73,6 +85,7 @@ impl<'de> Deserialize<'de> for Project {
 
         Ok(Project {
             name: raw.name,
+            root_dir: raw.root_dir,
             setup,
         })
     }
@@ -118,6 +131,7 @@ windows:
             project,
             Project {
                 name: "OsmApp".to_string(),
+                root_dir: PathBuf::from("~/GitHub/osmapp"),
                 setup: ProjectSetup::Windows(vec![
                     Window {
                         name: Some(" Neovim".to_string()),
@@ -145,6 +159,7 @@ template: Svelte",
             project,
             Project {
                 name: "Dlool".to_string(),
+                root_dir: PathBuf::from("~/SoftwareDevelopment/web/Dlool/dlool_frontend_v2/"),
                 setup: ProjectSetup::Template("Svelte".to_string())
             }
         );

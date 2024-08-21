@@ -53,12 +53,12 @@ pub fn parse_template_config() -> Vec<Template> {
         .collect()
 }
 
-pub fn apply_template<'a>(
+pub fn apply_windows<'a>(
     tmux: Tmux<'a>,
-    template: &'a Template,
+    windows: &'a [Window],
     dir: &'a Option<PathBuf>,
 ) -> Tmux<'a> {
-    let enumerated = template.windows.iter().enumerate();
+    let enumerated = windows.iter().enumerate();
     enumerated.fold(tmux, |tmux, (window_idx, window)| {
         let cmd = build_tmux_command(window_idx, window, dir);
 
