@@ -1,7 +1,13 @@
 [package]
-name = "muxmate"
+name = "moxide"
 version = "0.1.0"
 edition = "2021"
+license = "GPL-3.0-only"
+readme = "README.md"
+authors = ["Dlurak"]
+description = "Moxide is a powerful tmux session manager."
+homepage = "https://github.com/Dlurak/moxide"
+repository = "https://github.com/Dlurak/moxide"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

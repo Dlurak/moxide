@@ -6,7 +6,7 @@ use std::{
 
 pub fn get_config_dir() -> std::path::PathBuf {
     match dirs::config_dir() {
-        Some(path) => path.join("muxmate"),
+        Some(path) => path.join("moxide"),
         None => exit!(1, "Could  not find a config directory"),
     }
 }

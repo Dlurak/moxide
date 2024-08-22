@@ -8,8 +8,10 @@ pub struct ProjectCli {
 
 #[derive(Subcommand, Debug)]
 pub enum ProjectCommands {
+    /// List all projects
     #[command(alias = "ls")]
     List(ProjectListArgs),
+    /// Start a specific project
     Start(ProjectStartArgs),
 }
 
@@ -22,6 +24,7 @@ pub struct ProjectListArgs {
 
 #[derive(Debug, Parser)]
 pub struct ProjectStartArgs {
+    /// The name of the project as it's defined in the config
     pub name: String,
 
     /// Start the session detached

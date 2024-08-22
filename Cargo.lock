@@ -214,7 +214,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "muxmate"
+name = "moxide"
 version = "0.1.0"
 dependencies = [
  "clap",

@@ -19,19 +19,22 @@ pub enum Commands {
     ///
     /// This command will initialize your config directories.
     Init,
-    /// Manage directories in the context of muxmate and tmux
+    /// Manage directories in the context of moxide and tmux
     ///
     /// This command provides functionalities to interact with tmux sessions based on directories.
     #[command(alias = "dir", alias = "dirs", alias = "directories")]
     Directory(directory::DirectoryCli),
-    /// Manage templates in the context of muxmate and tmux
+    /// Manage templates in the context of moxide and tmux
     ///
     /// This command provides functionalities to interact with tmux sessions based on templates
     #[command(alias = "temp", alias = "templ")]
     Template(template::TemplateCli),
-
+    /// Manage projects in the context of moxide and tmux
+    ///
+    /// This command provides functionalities to interact with tmux sessions based on projects
     #[command(alias = "proj", alias = "projects")]
     Project(project::ProjectCli),
-
+    /// List all moxide directories, templates and projecets
+    #[command(alias = "ls")]
     List(list::ListCli),
 }
