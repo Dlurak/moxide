@@ -1,15 +1,15 @@
 # Moxide
 
-Moxide is a powerful tmux session manager written in Rust. It simplifies the process of creating and managing complex tmux sessions, allowing you to define and control multiple windows and commands effortlessly.
+**Moxide** is a powerful tmux session manager written in Rust that simplifies the process of creating and managing complex tmux sessions. It allows you to define and control multiple windows and commands effortlessly, making it a perfect fit for developers and teams alike.
 
 ## Features
 
-- **Declarative and Extensible:** Define your sessions using simple YAML configuration files. Customize and extend your setup as needed.
-- **Single Binary:** Moxide is distributed as a single binary. No runtime or interpreter is required, making it easy to install and run.
-- **Projects, Templates, and Directories:** Unlike other session managers, Moxide supports directories, templates, and projects:
-  - **Directories:** Easily create named sessions based on the directory you're working in.
-  - **Templates:** Create reusable templates for common setups. For example, a JavaScript template could open `nvim` in one window and run `npm` commands in another.
-  - **Projects:** Combine directories with templates to streamline workflows. You can specify a template for a project or directly define the windows and commands needed.
+- **Declarative and Extensible**: Define your sessions using simple YAML configuration files. Customize and extend your setup as needed.
+- **Single Binary**: Moxide is distributed as a single binary, requiring no runtime or interpreter, making it easy to install and run.
+- **Projects, Templates, and Directories**:
+  - **Directories**: Create named sessions based on the directory you're working in.
+  - **Templates**: Reusable templates for common setups. For instance, a Rust template might open Neovim in one window and run Cargo commands in another.
+  - **Projects**: Combine directories with templates to streamline workflows. Specify a template for a project or directly define the windows and commands needed.
 
 ## Installation
 
@@ -19,92 +19,136 @@ To install Moxide, use the following command:
 cargo install moxide
 ```
 
+## Why moxide
+
+Moxide offers a unique combination of features:
+
+- **Reusable Templates**: Easily define a session once and apply it across multiple projects, making it ideal for managing similar setups.
+- **Flexibility**: Choose whether to use a template or define project-specific configurations, allowing for customization when needed.
+- **Declarative Configuration**: Use simple YAML files for configuration, promoting readability and ease of management.
+
+Here are some scenarios how moxide might help people:
+
+- Developers managing multiple projects that require similar setups.
+- Teams looking for a standardized tmux environment across shared codebases.
+- Individuals who appreciate the flexibility of reusing templates while maintaining the option for custom project configurations.
+
 ## Configuration Files
 
-Moxide uses simple YAML configuration files. For an example, you can view my personal Moxide configuration [here](https://github.com/Dlurak/Dotfiles/tree/master/moxide).
+Moxide uses simple YAML configuration files. Below are examples of how to configure directories, projects, and templates.
 
-### Concepts
+### Example Configuration Files
 
 #### Directories
 
-Directories allow you to create a named tmux session based on a specific directory, making it easy to create sessions for important directories.
+`~/.config/moxide/directories.yaml`
 
-#### Templates
-
-Templates define the layout of windows, panes, and commands. They do not require a specific directory and can be customized for different programming languages or workflows. For example, a JavaScript template might open nvim in one window and run npm commands in another.
+```yaml
+- name: "Downloads"
+  path: "~/Downloads/"
+- name: "Home"
+  path: "~/"
+```
 
 #### Projects
 
-Projects combine directories and templates. You can specify a template to use with a directory or define the session setup directly within the project configuration. This flexibility helps you manage complex workflows more efficiently.
+`~/.config/moxide/projects/Moxide.yaml`
 
-## License
+```yaml
+name: Moxide
 
-Moxide is licensed under the GPL.
+root_dir: ~/SoftwareDevelopment/cli/moxide/
+template: Rust
+```
 
-## Scripting
+It is also possible to have project specific configs.
 
-It is easy and recommended to use moxide in shell scripts.
-Here is the one I recommend:
+#### Templates
 
-```sh
+`~/.config/template/Rust.yaml`
+
+```yaml
+name: Rust
+
+windows:
+  - name: Neovim
+    panes:
+      - nvim
+  - name: Cargo
+    layout: even-horizontal
+    panes:
+      - cargo build
+      - cargo clippy
+```
+
+## Usage
+
+Moxide allows you to choose whether to apply a template to a project or define the windows and commands per project. This flexibility enables teams to maintain standard setups while accommodating unique project needs.
+
+### Launching Moxide Sessions
+
+```bash
+moxide project start ProjectName
+```
+```bash
+moxide template start Rust --directory ~
+```
+```bash
+moxide dir start Downloads
+```
+```bash
+moxide dir start "~/Pictures/"
+```
+
+## Scripting integration
+
+Moxide can be easily integrated into shell scripts. Below is a sample script for launching Moxide sessions with a selection tool:
+
+```bash
 #!/bin/bash
 
 project_emoji="🚀"
 template_emoji="🛠️"
 directory_emoji="📁"
 
-if [ "$1" == "rofi" ]; then
-    selection_tool="rofi"
-else
-    selection_tool="fzf"
-fi
-
-fzf_colors="--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
-	--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
-	--color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
-	--color=selected-bg:#45475a"
-
 list=$(moxide list \
-	--format-project "$project_emoji {}"\
-	--format-template "$template_emoji {}"\
-	--format-directory "$directory_emoji {}"
+    --format-project "$project_emoji {}"\
+    --format-template "$template_emoji {}"\
+    --format-directory "$directory_emoji {}"
 )
 
-case "$selection_tool" in
-	"rofi")
-		value=$(echo "$list" | rofi -dmenu -p " Tmux");
-		;;
-	*)
-		value=$(echo "$list" | \
-			fzf \
-			--no-sort \
-			--layout reverse \
-			--border rounded \
-			--border-label "Moxide Sessions" \
-			--no-scrollbar \
-			--prompt "✨ " \
-			--pointer "👉" \
-			$fzf_colors
-		)
-		;;
-esac
+value=$(echo "$list" | \
+    fzf \
+    --no-sort \
+    --layout reverse \
+    --border rounded \
+    --border-label "Moxide Sessions" \
+    --no-scrollbar \
+    --prompt "✨ " \
+    --pointer "👉" \
+    --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
+    --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
+    --color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
+    --color=selected-bg:#45475a
+)
 
 emoji="${value:0:1}"
 name="${value:2}"
 
 case "$emoji" in
-	$project_emoji)
-		moxide project start "$name"
-		;;
-	$template_emoji)
-		moxide template start "$name"
-		;;
-	$directory_emoji)
-		moxide dir start "$name"
-		;;
+    $project_emoji)
+        moxide project start "$name"
+        ;;
+    $template_emoji)
+        moxide template start "$name"
+        ;;
+    $directory_emoji)
+        moxide dir start "$name"
+        ;;
 esac
 ```
-Then you can bind that into a tmux popup:
+You can bind this script into a tmux popup with the following command:
+
 ```tmux
 bind-key s display-popup -B -E -w 40% -h 12 "~/Dotfiles/scripts/shell/moxide.sh"
 ```
