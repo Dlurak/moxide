@@ -19,6 +19,14 @@ To install Moxide, use the following command:
 cargo install moxide
 ```
 
+### Nix
+
+Moxide is also available in nixpkgs under the name `moxide`, if you use nix you know how to install a nixpkg but still here is a command:
+
+```bash
+nix shell nixpkgs#moxide
+```
+
 ## Why moxide
 
 Moxide offers a unique combination of features:
