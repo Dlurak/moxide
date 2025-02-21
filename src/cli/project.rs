@@ -32,6 +32,6 @@ pub struct ProjectStartArgs {
     pub detached: bool,
 
     /// Always start a new session instead of attaching to an existing session
-    #[arg(long, default_value_t = false)]
+    #[arg(short = 'n', long, default_value_t = false)]
     pub always_new_session: bool,
 }

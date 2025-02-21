@@ -72,6 +72,23 @@ pub fn format_name(user_fmt: &Option<String>, name: &str) -> String {
         .map_or_else(|| name.to_string(), |fmt| fmt.replace("{}", name))
 }
 
+/// Applies `predicate` to `base` and `data` if `data` is `Some`, otherwise returns `base`.
+/// Useful for conditionally applying transformations.
+pub fn apply_if_some<B, D, F: Fn(B, D) -> B>(base: B, data: Option<D>, predicate: F) -> B {
+    match data {
+        Some(d) => predicate(base, d),
+        None => base,
+    }
+}
+
+#[macro_export]
+macro_rules! exit {
+    ($code:expr, $fmt:expr $(, $args:expr)*) => {{
+        eprintln!($fmt $(, $args)*);
+        std::process::exit($code);
+    }};
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,7 +1,6 @@
 use crate::{
-    apply_if,
     cli::template::{ListTemplateArgs, StartTemplateArgs, TemplateCli, TemplateCommands},
-    helpers::{absolute_path, dir_name, Exit},
+    helpers::{absolute_path, apply_if_some, dir_name, Exit},
     templates::{apply_windows, parse_template_config},
     tmux,
     widgets::{heading::Heading, table::Table},
@@ -51,19 +50,22 @@ fn start_handler(args: StartTemplateArgs) {
         .map_or(template.name, |p| dir_name(p));
 
     if tmux::session_exists(&name).unwrap_or(false) && !args.always_new_session {
-        apply_if!(!detached, Tmux::new(), add_command, tmux::attach(name))
-            .output()
-            .exit(1, "Could not attach to the Tmux-session");
+        apply_if_some(
+            Tmux::new(),
+            (!detached).then(|| tmux::attach(&name)),
+            |tmux, cmd| tmux.add_command(cmd),
+        )
+        .output()
+        .exit(1, "Could not attach to the Tmux-session");
         return;
     }
 
     let (new_session_cmd, name) = resolve_cmd_name(&resolved_path, args.name, name);
 
-    let initial_tmux = apply_if!(
-        !detached,
+    let initial_tmux = apply_if_some(
         Tmux::new().add_command(new_session_cmd),
-        add_command,
-        tmux::attach(&name)
+        (!detached).then(|| tmux::attach(&name)),
+        |tmux, cmd| tmux.add_command(cmd),
     );
 
     let tmux = apply_windows(initial_tmux, &template.windows, &resolved_path);

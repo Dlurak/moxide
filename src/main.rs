@@ -3,7 +3,6 @@ mod commands;
 mod directories;
 mod helpers;
 mod init;
-mod macros;
 mod projects;
 mod templates;
 mod tmux;

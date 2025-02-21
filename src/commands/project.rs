@@ -1,7 +1,6 @@
 use crate::{
-    apply_if,
     cli::project::{ProjectCli, ProjectCommands, ProjectListArgs, ProjectStartArgs},
-    helpers::{self, Exit},
+    helpers::{self, apply_if_some, Exit},
     projects::parse_project_config,
     templates::apply_windows,
     tmux,
@@ -37,11 +36,10 @@ fn start_handler(args: ProjectStartArgs) {
     let detached = args.detached;
 
     if tmux::session_exists(&project.name).unwrap_or(false) && !args.always_new_session {
-        apply_if!(
-            !detached,
+        apply_if_some(
             Tmux::new(),
-            add_command,
-            tmux::attach(&project.name)
+            (!detached).then(|| tmux::attach(&project.name)),
+            |tmux, cmd| tmux.add_command(cmd),
         )
         .output()
         .exit(1, "Could not attach to the Tmux-session");
@@ -57,11 +55,10 @@ fn start_handler(args: ProjectStartArgs) {
         .session_name(&name)
         .start_directory(path.to_string_lossy().into_owned());
 
-    let initial_tmux = apply_if!(
-        !detached,
+    let initial_tmux = apply_if_some(
         Tmux::new().add_command(new_session_cmd),
-        add_command,
-        tmux::attach(&name)
+        (!detached).then(|| tmux::attach(&name)),
+        |tmux, cmd| tmux.add_command(cmd),
     );
 
     apply_windows(initial_tmux, &windows, &Some(path))
