@@ -4,11 +4,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn get_config_dir() -> std::path::PathBuf {
-    match dirs::config_dir() {
-        Some(path) => path.join("moxide"),
-        None => exit!(1, "Could  not find a config directory"),
-    }
+pub fn get_config_dir() -> PathBuf {
+    env::var("XDG_CONFIG_HOME")
+        .ok()
+        .map(PathBuf::from)
+        .or(dirs::home_dir().map(|home| home.join(".config")))
+        .or(dirs::config_dir())
+        .exit(1, "Could not find a config directory")
+        .join("moxide")
 }
 
 fn expand_tilde<P: AsRef<Path>>(path: P) -> Option<PathBuf> {
@@ -21,16 +24,15 @@ fn expand_tilde<P: AsRef<Path>>(path: P) -> Option<PathBuf> {
         return dirs::home_dir();
     }
 
-    dirs::home_dir().map(|mut h| {
-        if h == Path::new("/") {
-            // Corner case: `h` root directory;
-            // don't prepend extra `/`, just drop the tilde.
-            p.strip_prefix("~").unwrap().to_path_buf()
-        } else {
-            h.push(p.strip_prefix("~/").unwrap());
-            h
-        }
-    })
+    let mut home_dir = dirs::home_dir()?;
+    if home_dir == Path::new("/") {
+        // Corner case: `h` root directory;
+        // don't prepend extra `/`, just drop the tilde.
+        Some(p.strip_prefix("~").unwrap().to_path_buf())
+    } else {
+        home_dir.push(p.strip_prefix("~/").unwrap());
+        Some(home_dir)
+    }
 }
 
 pub fn absolute_path(path: &Path) -> std::io::Result<PathBuf> {
