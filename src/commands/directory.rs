@@ -1,7 +1,6 @@
 use crate::{
     cli::directory::{DirectoryCli, DirectoryCommands, ListDirectoryArgs, StartDirectoryArgs},
-    conditional_command,
-    directories::{self, Directory},
+    directories::{parse_directory_config, Directory},
     helpers::{absolute_path, dir_name, Exit},
     tmux::{attach, session_exists},
     widgets::table::Table,
@@ -17,7 +16,7 @@ pub fn directory_handler(args: DirectoryCli) {
 }
 
 fn list_handler(args: ListDirectoryArgs) {
-    let dirs = directories::parse_directory_config();
+    let dirs = parse_directory_config();
 
     if args.minimal {
         println!("{}", format_dirs_minimal(dirs));
@@ -33,7 +32,7 @@ fn format_dirs_minimal(dirs: Vec<Directory>) -> String {
     let dirs_formatted: Vec<_> = dirs
         .into_iter()
         .map(|dir| {
-            let name = dir.name.unwrap_or("No name".to_string());
+            let name = dir.name.unwrap_or_else(|| String::from("No name"));
             format!("\"{}\" {}", name, dir.path.display())
         })
         .collect();
@@ -45,37 +44,37 @@ fn start_handler(args: StartDirectoryArgs) {
     let (name, path) = resolve_dir_path(&args);
     let exists = session_exists(&name).unwrap_or(false);
 
-    let new_session_cmd = conditional_command!(
-        args.always_new_session || !exists,
-        NewSession::new()
+    let mut tmux = Tmux::new();
+    if args.always_new_session || !exists {
+        let cmd = NewSession::new()
             .start_directory(path.to_string_lossy())
             .detached()
             .session_name(&name)
-            .window_name(&name)
-    );
-    let attach_cmd = conditional_command!(!args.detached, attach(&name));
+            .window_name(&name);
+        tmux = tmux.add_command(cmd);
+    }
+    if !args.detached {
+        tmux = tmux.add_command(attach(&name));
+    }
 
-    Tmux::new()
-        .add_command(new_session_cmd)
-        .add_command(attach_cmd)
-        .output()
+    tmux.output()
         .exit(1, "Could not switch to the Tmux session");
 }
 
 fn resolve_dir_path(cli_args: &StartDirectoryArgs) -> (String, PathBuf) {
-    let dirs = directories::parse_directory_config();
+    let dirs = parse_directory_config();
     let dir = dirs.iter().find(|d| d.get_name() == cli_args.directory);
     let user_name = cli_args.name.clone();
 
     match dir {
         Some(dir) => (
-            user_name.unwrap_or(dir.get_name().to_string()),
+            user_name.unwrap_or_else(|| dir.get_name().to_string()),
             absolute_path(&dir.path).exit(1, "The path could not be generated"),
         ),
         None => {
             let relative_path = PathBuf::from(&cli_args.directory);
             let path = absolute_path(&relative_path).exit(1, "The path could not be generated");
-            let name = user_name.unwrap_or(dir_name(&path));
+            let name = user_name.unwrap_or_else(|| dir_name(&path));
 
             (name, path)
         }

@@ -13,6 +13,6 @@ impl<T: fmt::Display> fmt::Display for Heading<T> {
 
 impl<T: fmt::Display> From<T> for Heading<T> {
     fn from(value: T) -> Self {
-        Heading(value)
+        Self(value)
     }
 }

@@ -48,8 +48,7 @@ fn start_handler(args: StartTemplateArgs) {
     let resolved_path = args.directory.and_then(|p| absolute_path(&p).ok());
     let name = resolved_path
         .as_ref()
-        .map(|p| dir_name(p))
-        .unwrap_or(template.name.clone());
+        .map_or(template.name, |p| dir_name(p));
 
     if tmux::session_exists(&name).unwrap_or(false) && !args.always_new_session {
         apply_if!(!detached, Tmux::new(), add_command, tmux::attach(name))

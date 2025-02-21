@@ -20,18 +20,9 @@ pub struct Window {
     pub panes: Vec<String>,
 }
 
-// TODO: Merge From<&Window> and From<Window>
 impl From<&Window> for Table<String, String> {
     fn from(value: &Window) -> Self {
-        let name = value.name.clone().unwrap_or("No name".to_string());
-
-        Self::from((name, format!("{} Panes", value.panes.len())))
-    }
-}
-
-impl From<Window> for Table<String, String> {
-    fn from(value: Window) -> Self {
-        let name = value.name.clone().unwrap_or("No name".to_string());
+        let name = value.name.clone().unwrap_or_else(|| "No name".to_string());
 
         Self::from((name, format!("{} Panes", value.panes.len())))
     }
@@ -62,10 +53,7 @@ pub fn apply_windows<'a>(
     enumerated.fold(tmux, |tmux, (window_idx, window)| {
         let cmd = build_tmux_command(window_idx, window, dir);
 
-        let layout_cmd: TmuxCommand = match &window.layout {
-            Some(layout) => TmuxCommand::select_layout().layout_name(layout).into(),
-            None => TmuxCommand::select_layout().into(),
-        };
+        let layout_cmd: TmuxCommand = window.layout.as_ref().map_or_else(|| TmuxCommand::select_layout().into(), |layout| TmuxCommand::select_layout().layout_name(layout).into());
 
         let tmux = tmux.add_command(cmd);
         add_panes_to_tmux(tmux, &window.panes, dir).add_command(layout_cmd)
@@ -95,15 +83,16 @@ fn build_tmux_command<'a>(
     dir: &'a Option<PathBuf>,
 ) -> TmuxCommand<'a> {
     if window_idx == 0 {
-        match &window.name {
-            Some(name) => TmuxCommand::rename_window().new_name(name).into(),
-            None => TmuxCommand::new(),
-        }
+        window.name.as_ref().map_or_else(TmuxCommand::new, |name| {
+            TmuxCommand::rename_window().new_name(name).into()
+        })
     } else {
-        let new_win = match &window.name {
-            Some(name) => TmuxCommand::new_window().window_name(name),
-            None => TmuxCommand::new_window(),
-        };
+        let new_win = window
+            .name
+            .as_ref()
+            .map_or_else(TmuxCommand::new_window, |name| {
+                TmuxCommand::new_window().window_name(name)
+            });
         match dir {
             Some(d) => new_win.start_directory(d.to_string_lossy()).into(),
             None => new_win.into(),

@@ -14,14 +14,10 @@ pub struct Directory {
 
 impl Directory {
     pub fn get_name(&self) -> &str {
-        match &self.name {
-            Some(name) => name,
-            None => self
-                .path
-                .file_name()
-                .and_then(|os_str| os_str.to_str())
-                .unwrap_or(""),
-        }
+        self.name
+            .as_deref()
+            .or_else(|| self.path.file_name().and_then(|os_str| os_str.to_str()))
+            .unwrap_or_default()
     }
 }
 

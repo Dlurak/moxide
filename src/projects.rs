@@ -45,16 +45,15 @@ impl From<ProjectSetup> for Table<String, String> {
             ProjectSetup::Windows(_) => None,
         };
         let windows: Vec<Window> = value.into();
+        let windows: Vec<&Window> = windows.iter().collect();
 
         let mut rows = Self::new(vec![(
             "Template".to_string(),
-            template_name.unwrap_or("None".to_string()),
-        )])
-        .rows;
-        let windows = Self::from_iter(windows).rows;
-        rows.extend(windows);
+            template_name.unwrap_or_else(|| "None".to_string()),
+        )]);
+        rows.extend_table(Self::from_iter(windows));
 
-        Self::new(rows)
+        rows
     }
 }
 
@@ -83,7 +82,7 @@ impl<'de> Deserialize<'de> for Project {
             ));
         };
 
-        Ok(Project {
+        Ok(Self {
             name: raw.name,
             root_dir: raw.root_dir,
             setup,

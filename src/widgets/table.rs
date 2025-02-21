@@ -5,21 +5,24 @@ pub struct Table<T: fmt::Display, U: fmt::Display> {
     pub rows: Vec<(T, U)>,
 }
 
-impl<T: fmt::Display, U: fmt::Display> Table<T, U>
-where
-    T: fmt::Display,
-    U: fmt::Display,
-{
-    pub fn new(rows: Vec<(T, U)>) -> Self {
+impl<T: fmt::Display, U: fmt::Display> Table<T, U> {
+    pub const fn new(rows: Vec<(T, U)>) -> Self {
         Self { rows }
+    }
+
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = (T, U)>,
+    {
+        self.rows.extend(iter);
+    }
+
+    pub fn extend_table(&mut self, other: Self) {
+        self.extend(other.rows)
     }
 }
 
-impl<T, U> Iterator for Table<T, U>
-where
-    T: fmt::Display,
-    U: fmt::Display,
-{
+impl<T: fmt::Display, U: fmt::Display> Iterator for Table<T, U> {
     type Item = (T, U);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -35,7 +38,7 @@ impl<T, U, I> FromIterator<I> for Table<T, U>
 where
     T: fmt::Display + Clone,
     U: fmt::Display + Clone,
-    I: Into<Table<T, U>>,
+    I: Into<Self>,
 {
     fn from_iter<Iter>(iter: Iter) -> Self
     where
@@ -46,7 +49,7 @@ where
             let table = item.into();
             merged_rows.extend(table.rows);
         }
-        Table::new(merged_rows)
+        Self::new(merged_rows)
     }
 }
 

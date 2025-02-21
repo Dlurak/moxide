@@ -17,31 +17,14 @@ pub fn session_exists<'a, S: Into<Cow<'a, str>>>(name: S) -> Result<bool, Error>
         .map(|x| x.success())
 }
 
-#[macro_export]
-macro_rules! conditional_command {
-    ($condition:expr, $command:expr) => {
-        if $condition {
-            $command.into()
-        } else {
-            tmux_interface::TmuxCommand::new()
-        }
-    };
-}
-
-fn private_get_unused_name(name: String, used: Option<u8>) -> String {
-    let new_name = match used {
-        Some(counter) => format!("{}({})", name, counter),
-        None => name.clone(),
-    };
-
-    if session_exists(&new_name).unwrap_or(false) {
-        let next_counter = used.unwrap_or(0) + 1;
-        private_get_unused_name(name, Some(next_counter))
-    } else {
-        new_name
-    }
-}
-
 pub fn get_unused_name(name: String) -> String {
-    private_get_unused_name(name, None)
+    let mut counter = 0;
+    let mut new_name = name.clone();
+
+    while session_exists(&new_name).unwrap_or(false) {
+        counter += 1;
+        new_name = format!("{name}({counter})");
+    }
+
+    new_name
 }
