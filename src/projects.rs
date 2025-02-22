@@ -4,21 +4,22 @@ use crate::{
     templates::{parse_template_config, Window},
     widgets::table::Table,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Serialize, Debug, PartialEq, Eq)]
 pub struct Project {
     pub name: String,
     pub root_dir: PathBuf,
+    #[serde(flatten)]
     pub setup: ProjectSetup,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum ProjectSetup {
     Template(String),
-    Windows(Vec<Window>),
+    Windows { windows: Vec<Window> },
 }
 
 impl From<ProjectSetup> for Vec<Window> {
@@ -33,7 +34,7 @@ impl From<ProjectSetup> for Vec<Window> {
 
                 template.windows
             }
-            ProjectSetup::Windows(windows) => windows,
+            ProjectSetup::Windows { windows } => windows,
         }
     }
 }
@@ -42,7 +43,7 @@ impl From<ProjectSetup> for Table<String, String> {
     fn from(value: ProjectSetup) -> Self {
         let template_name = match &value {
             ProjectSetup::Template(template_name) => Some(template_name.clone()),
-            ProjectSetup::Windows(_) => None,
+            ProjectSetup::Windows { .. } => None,
         };
         let windows: Vec<Window> = value.into();
         let windows: Vec<&Window> = windows.iter().collect();
@@ -75,7 +76,7 @@ impl<'de> Deserialize<'de> for Project {
         let setup = if let Some(template) = raw.template {
             ProjectSetup::Template(template)
         } else if let Some(windows) = raw.windows {
-            ProjectSetup::Windows(windows)
+            ProjectSetup::Windows { windows }
         } else {
             return Err(serde::de::Error::custom(
                 "Expected either template or windows",
@@ -91,18 +92,20 @@ impl<'de> Deserialize<'de> for Project {
 }
 
 pub fn parse_project_config() -> Vec<Project> {
-    let projects_content =
-        fs::read_dir(get_config_dir().join("projects/")).exit(1, "Can't read template config");
+    let projects_dir = get_config_dir().join("projects/");
+    let projects_content = fs::read_dir(&projects_dir).exit(1, "Can't read template config");
 
-    let projects_raw: Vec<_> = projects_content
-        .filter_map(|x| x.ok())
-        .filter(|x| x.path().is_file())
-        .filter_map(|x| fs::read_to_string(x.path()).ok())
-        .collect();
+    projects_content
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            if !path.is_file() {
+                return None;
+            }
 
-    projects_raw
-        .iter()
-        .filter_map(|x| serde_yaml::from_str::<Project>(x).ok())
+            let content = fs::read_to_string(&path).ok()?;
+            serde_yaml::from_str::<Project>(&content).ok()
+        })
         .collect()
 }
 
@@ -131,18 +134,20 @@ windows:
             Project {
                 name: "OsmApp".to_string(),
                 root_dir: PathBuf::from("~/GitHub/osmapp"),
-                setup: ProjectSetup::Windows(vec![
-                    Window {
-                        name: Some(" Neovim".to_string()),
-                        panes: vec!["nvim".to_string()],
-                        layout: None,
-                    },
-                    Window {
-                        name: Some("Server".to_string()),
-                        panes: vec!["yarn run dev".to_string()],
-                        layout: None,
-                    }
-                ])
+                setup: ProjectSetup::Windows {
+                    windows: vec![
+                        Window {
+                            name: Some(" Neovim".to_string()),
+                            panes: vec!["nvim".to_string()],
+                            layout: None,
+                        },
+                        Window {
+                            name: Some("Server".to_string()),
+                            panes: vec!["yarn run dev".to_string()],
+                            layout: None,
+                        }
+                    ]
+                }
             }
         );
 

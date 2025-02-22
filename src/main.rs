@@ -19,5 +19,11 @@ fn main() {
         cli::Commands::Template(args) => commands::template::template_handler(args),
         cli::Commands::Project(args) => commands::project::project_handler(args),
         cli::Commands::List(args) => commands::list::list_handler(args),
+        cli::Commands::Freeze {
+            name,
+            force,
+            file_name,
+            stdout,
+        } => commands::freeze::freeze_handler(name, force, file_name, stdout),
     }
 }

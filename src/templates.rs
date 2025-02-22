@@ -2,7 +2,7 @@ use crate::{
     helpers::{get_config_dir, Exit},
     widgets::table::Table,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use tmux_interface::{Tmux, TmuxCommand};
 
@@ -13,7 +13,7 @@ pub struct Template {
     pub windows: Vec<Window>,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct Window {
     pub name: Option<String>,
     pub layout: Option<String>,

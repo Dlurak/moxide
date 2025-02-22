@@ -33,11 +33,11 @@ Moxide offers a unique combination of features:
 
 - **Reusable Templates**: Easily define a session once and apply it across multiple projects, making it ideal for managing similar setups.
 - **Flexibility**: Choose whether to use a template or define project-specific configurations, allowing for customization when needed.
-- **Declarative Configuration**: Use simple YAML files for configuration, promoting readability and ease of management.
+- **Declarative Configuration**: Use simple YAML files for configuration, promoting readability and ease of management, it can even be generated from an active session.
 
 Here are some scenarios how moxide might help people:
 
-- Developers managing multiple projects that require similar setups.
+- Developers managing multiple projects that require similar setups (For example 5 JavaScript projects, where only the directory differs).
 - Teams looking for a standardized tmux environment across shared codebases.
 - Individuals who appreciate the flexibility of reusing templates while maintaining the option for custom project configurations.
 
@@ -140,9 +140,7 @@ value=$(echo "$list" | \
     --color=selected-bg:#45475a
 )
 
-emoji="${value:0:1}"
-name="${value:2}"
-
+IFS=' ' read -r emoji name <<< "$value"
 case "$emoji" in
     $project_emoji)
         moxide project start "$name"
@@ -158,7 +156,7 @@ esac
 You can bind this script into a tmux popup with the following command:
 
 ```tmux
-bind-key s display-popup -B -E -w 40% -h 12 "~/Dotfiles/scripts/shell/moxide.sh"
+bind-key s display-popup -B -E -w 40% -h 13 "~/Dotfiles/scripts/shell/moxide.sh"
 ```
 
 ## Similar Projects
