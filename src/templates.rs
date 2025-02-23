@@ -1,5 +1,5 @@
 use crate::{
-    helpers::{get_config_dir, Exit},
+    helpers::{apply_if_some, get_config_dir, Exit},
     widgets::table::Table,
 };
 use serde::{Deserialize, Serialize};
@@ -32,15 +32,17 @@ pub fn parse_template_config() -> Vec<Template> {
     let templates_content =
         fs::read_dir(get_config_dir().join("templates/")).exit(1, "Can't read template config");
 
-    let templates_raw: Vec<_> = templates_content
-        .filter_map(|x| x.ok())
-        .filter(|x| x.path().is_file())
-        .filter_map(|x| fs::read_to_string(x.path()).ok())
-        .collect();
+    templates_content
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            if !path.is_file() {
+                return None;
+            }
 
-    templates_raw
-        .iter()
-        .filter_map(|x| serde_yaml::from_str::<Template>(x).ok())
+            let content = fs::read_to_string(path).ok()?;
+            serde_yaml::from_str::<Template>(&content).ok()
+        })
         .collect()
 }
 
@@ -53,10 +55,15 @@ pub fn apply_windows<'a>(
     enumerated.fold(tmux, |tmux, (window_idx, window)| {
         let cmd = build_tmux_command(window_idx, window, dir);
 
-        let layout_cmd: TmuxCommand = window.layout.as_ref().map_or_else(|| TmuxCommand::select_layout().into(), |layout| TmuxCommand::select_layout().layout_name(layout).into());
+        let layout = window.layout.as_ref();
+        let layout_cmd = layout.map(|layout| TmuxCommand::select_layout().layout_name(layout));
 
         let tmux = tmux.add_command(cmd);
-        add_panes_to_tmux(tmux, &window.panes, dir).add_command(layout_cmd)
+        apply_if_some(
+            add_panes_to_tmux(tmux, &window.panes, dir),
+            layout_cmd,
+            |tmux, cmd| tmux.add_command(cmd),
+        )
     })
 }
 
@@ -87,12 +94,10 @@ fn build_tmux_command<'a>(
             TmuxCommand::rename_window().new_name(name).into()
         })
     } else {
-        let new_win = window
-            .name
-            .as_ref()
-            .map_or_else(TmuxCommand::new_window, |name| {
-                TmuxCommand::new_window().window_name(name)
-            });
+        let name = window.name.as_ref();
+        let new_win = name.map_or_else(TmuxCommand::new_window, |name| {
+            TmuxCommand::new_window().window_name(name)
+        });
         match dir {
             Some(d) => new_win.start_directory(d.to_string_lossy()).into(),
             None => new_win.into(),

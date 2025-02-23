@@ -32,19 +32,19 @@ pub enum Commands {
     /// Manage projects in the context of moxide and tmux
     ///
     /// This command provides functionalities to interact with tmux sessions based on projects
-    #[command(alias = "proj", alias = "projects")]
+    #[command(alias = "pr", alias = "proj", alias = "projects")]
     Project(project::ProjectCli),
     /// List all moxide directories, templates and projecets
     #[command(alias = "ls")]
     List(list::ListCli),
     /// Save the current session into a new template
-    #[command(alias = "save")]
+    #[command(alias = "fre", alias = "save")]
     Freeze {
         /// The name of the saved session, if none is provided the most used directory is used
         #[arg(short = 'n', long)]
         name: Option<String>,
         /// The name of the new file
-        #[arg(long, group = "file")]
+        #[arg(alias = "file", long, group = "file")]
         file_name: Option<String>,
         /// Force overwrite existing files
         #[arg(short, long, default_value_t = false, group = "file")]
