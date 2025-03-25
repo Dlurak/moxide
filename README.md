@@ -27,6 +27,8 @@ Moxide is also available in nixpkgs under the name `moxide`, if you use nix you 
 nix shell nixpkgs#moxide
 ```
 
+This repo also provides a flake, it is always up to date and includes a home-manager module.
+
 ## Why moxide
 
 Moxide offers a unique combination of features:

@@ -1,6 +1,5 @@
 {
   inputs = {
-    naersk.url = "github:nix-community/naersk/master";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
   };
@@ -9,25 +8,28 @@
     self,
     nixpkgs,
     utils,
-    naersk,
   }:
-    utils.lib.eachDefaultSystem (
+    (utils.lib.eachDefaultSystem (
       system: let
         pkgs = import nixpkgs {inherit system;};
-        naersk-lib = pkgs.callPackage naersk {};
+        moxide = import ./nix/build.nix {inherit pkgs;};
       in {
-        defaultPackage = naersk-lib.buildPackage ./.;
+        defaultPackage = moxide;
+        packages.moxide = moxide;
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             cargo
             rustc
             rustfmt
-			rust-analyzer
+            rust-analyzer
             rustPackages.clippy
             bacon
           ];
           RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
         };
       }
-    );
+    ))
+    // {
+      homeManagerModules.moxide = import ./nix/hm-module.nix;
+    };
 }
