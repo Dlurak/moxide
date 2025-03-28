@@ -16,4 +16,9 @@ pub struct ListCli {
     /// will be used
     #[arg(long = "format-directory", short = 'd', alias = "fmt-dir")]
     pub format_directory: Option<String>,
+
+    /// Show all templates including hidden ones
+    #[arg(short, long, default_value_t = false)]
+    pub all: bool,
+
 }

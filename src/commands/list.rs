@@ -5,16 +5,20 @@ pub fn list_handler(args: ListCli) {
     let templates = templates::parse_template_config();
     let dirs = directories::parse_directory_config();
 
-    for i in projects {
-        println!("{}", format_name(&args.format_project, &i.name));
-    }
-    for i in templates.into_iter().filter(|x| !x.hidden.unwrap_or(false)) {
-        println!("{}", format_name(&args.format_template, &i.name));
+    for project in projects {
+        println!("{}", format_name(&args.format_project, &project.name));
     }
 
-    for i in dirs {
-        if let Some(name) = &i.name {
-            println!("{}", format_name(&args.format_directory, name));
+    for template in templates {
+        let is_hidden = template.hidden.unwrap_or(false);
+        if args.all || !is_hidden {
+            println!("{}", format_name(&args.format_template, &template.name));
+        }
+    }
+
+    for dir in dirs {
+        if let Some(name) = dir.name {
+            println!("{}", format_name(&args.format_directory, &name));
         }
     }
 }
