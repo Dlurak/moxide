@@ -23,17 +23,26 @@ pub enum Commands {
     ///
     /// This command provides functionalities to interact with tmux sessions based on directories.
     #[command(alias = "dir", alias = "dirs", alias = "directories")]
-    Directory(directory::DirectoryCli),
+    Directory {
+        #[command(subcommand)]
+        action: directory::DirectoryCommands,
+    },
     /// Manage templates in the context of moxide and tmux
     ///
     /// This command provides functionalities to interact with tmux sessions based on templates
     #[command(alias = "temp", alias = "templ")]
-    Template(template::TemplateCli),
+    Template {
+        #[command(subcommand)]
+        action: template::TemplateCommands,
+    },
     /// Manage projects in the context of moxide and tmux
     ///
     /// This command provides functionalities to interact with tmux sessions based on projects
     #[command(alias = "pr", alias = "proj", alias = "projects")]
-    Project(project::ProjectCli),
+    Project {
+        #[command(subcommand)]
+        action: project::ProjectCommands,
+    },
     /// List all moxide directories, templates and projecets
     #[command(alias = "ls")]
     List(list::ListCli),

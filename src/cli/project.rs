@@ -1,25 +1,16 @@
 use clap::{Parser, Subcommand};
 
-#[derive(Parser, Debug)]
-pub struct ProjectCli {
-    #[command(subcommand)]
-    pub action: ProjectCommands,
-}
-
 #[derive(Subcommand, Debug)]
 pub enum ProjectCommands {
     /// List all projects
     #[command(alias = "ls")]
-    List(ProjectListArgs),
+    List {
+        /// Show minimal output for scripts
+        #[arg(short, long, default_value_t = false)]
+        minimal: bool,
+    },
     /// Start a specific project
     Start(ProjectStartArgs),
-}
-
-#[derive(Debug, Parser)]
-pub struct ProjectListArgs {
-    /// Show minimal output for scripts
-    #[arg(short, long, default_value_t = false)]
-    pub minimal: bool,
 }
 
 #[derive(Debug, Parser)]

@@ -1,5 +1,5 @@
 use crate::{
-    cli::directory::{DirectoryCli, DirectoryCommands, ListDirectoryArgs, StartDirectoryArgs},
+    cli::directory::{DirectoryCommands, StartDirectoryArgs},
     directories::{parse_directory_config, Directory},
     helpers::{absolute_path, dir_name, Exit},
     tmux::{attach, session_exists},
@@ -8,17 +8,17 @@ use crate::{
 use std::path::PathBuf;
 use tmux_interface::{NewSession, Tmux};
 
-pub fn directory_handler(args: DirectoryCli) {
-    match args.action {
-        DirectoryCommands::List(args) => list_handler(args),
+pub fn directory_handler(action: DirectoryCommands) {
+    match action {
+        DirectoryCommands::List { minimal } => list_handler(minimal),
         DirectoryCommands::Start(args) => start_handler(args),
     }
 }
 
-fn list_handler(args: ListDirectoryArgs) {
+fn list_handler(minimal: bool) {
     let dirs = parse_directory_config();
 
-    if args.minimal {
+    if minimal {
         println!("{}", format_dirs_minimal(dirs));
         return;
     }

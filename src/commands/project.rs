@@ -1,5 +1,5 @@
 use crate::{
-    cli::project::{ProjectCli, ProjectCommands, ProjectListArgs, ProjectStartArgs},
+    cli::project::{ProjectCommands, ProjectStartArgs},
     helpers::{self, apply_if_some, Exit},
     projects::parse_project_config,
     templates::apply_windows,
@@ -8,16 +8,16 @@ use crate::{
 };
 use tmux_interface::{NewSession, Tmux};
 
-pub fn project_handler(args: ProjectCli) {
-    match args.action {
-        ProjectCommands::List(args) => list_handler(args),
+pub fn project_handler(action: ProjectCommands) {
+    match action {
+        ProjectCommands::List { minimal } => list_handler(minimal),
         ProjectCommands::Start(args) => start_handler(args),
     }
 }
 
-fn list_handler(args: ProjectListArgs) {
+fn list_handler(minimal: bool) {
     for proj in parse_project_config() {
-        if args.minimal {
+        if minimal {
             println!("{}", proj.name);
         } else {
             println!("{}", Heading(proj.name));

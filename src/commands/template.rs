@@ -1,5 +1,5 @@
 use crate::{
-    cli::template::{ListTemplateArgs, StartTemplateArgs, TemplateCli, TemplateCommands},
+    cli::template::{StartTemplateArgs, TemplateCommands},
     helpers::{absolute_path, apply_if_some, dir_name, Exit},
     templates::{apply_windows, parse_template_config},
     tmux,
@@ -8,16 +8,16 @@ use crate::{
 use std::path::PathBuf;
 use tmux_interface::{NewSession, Tmux, TmuxCommand};
 
-pub fn template_handler(args: TemplateCli) {
-    match args.action {
-        TemplateCommands::List(args) => list_handler(args),
+pub fn template_handler(action: TemplateCommands) {
+    match action {
+        TemplateCommands::List { minimal, all } => list_handler(minimal, all),
         TemplateCommands::Start(args) => start_handler(args),
     }
 }
 
-fn list_handler(args: ListTemplateArgs) {
+fn list_handler(minimal: bool, all: bool) {
     let templates = parse_template_config();
-    let filtered = if args.all {
+    let filtered = if all {
         templates
     } else {
         templates
@@ -27,7 +27,7 @@ fn list_handler(args: ListTemplateArgs) {
     };
 
     for template in filtered {
-        if args.minimal {
+        if minimal {
             println!("{}", template.name);
         } else {
             println!("{}", Heading(template.name));

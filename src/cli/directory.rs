@@ -1,23 +1,14 @@
 use clap::{Parser, Subcommand};
 
-#[derive(Parser, Debug)]
-pub struct DirectoryCli {
-    #[command(subcommand)]
-    pub action: DirectoryCommands,
-}
-
 #[derive(Subcommand, Debug)]
 pub enum DirectoryCommands {
     #[command(alias = "ls")]
-    List(ListDirectoryArgs),
+    List {
+        /// Show minimal output for scripts
+        #[arg(short, long, default_value_t = false)]
+        minimal: bool,
+    },
     Start(StartDirectoryArgs),
-}
-
-#[derive(Parser, Debug)]
-pub struct ListDirectoryArgs {
-    /// Show minimal output for scripts
-    #[arg(short, long, default_value_t = false)]
-    pub minimal: bool,
 }
 
 #[derive(Parser, Debug)]

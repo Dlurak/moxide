@@ -1,27 +1,18 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-#[derive(Parser, Debug)]
-pub struct TemplateCli {
-    #[command(subcommand)]
-    pub action: TemplateCommands,
-}
-
 #[derive(Subcommand, Debug)]
 pub enum TemplateCommands {
     #[command(alias = "ls")]
-    List(ListTemplateArgs),
+    List {
+        /// Show minimal output for scripts
+        #[arg(short, long, default_value_t = false)]
+        minimal: bool,
+        /// Show all templates including hidden ones
+        #[arg(short, long, default_value_t = false)]
+        all: bool,
+    },
     Start(StartTemplateArgs),
-}
-
-#[derive(Parser, Debug)]
-pub struct ListTemplateArgs {
-    /// Show minimal output for scripts
-    #[arg(short, long, default_value_t = false)]
-    pub minimal: bool,
-    /// Show all templates including hidden ones
-    #[arg(short, long, default_value_t = false)]
-    pub all: bool,
 }
 
 #[derive(Parser, Debug)]

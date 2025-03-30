@@ -20,5 +20,4 @@ pub struct ListCli {
     /// Show all templates including hidden ones
     #[arg(short, long, default_value_t = false)]
     pub all: bool,
-
 }

@@ -15,9 +15,9 @@ fn main() {
 
     match args.cmd {
         cli::Commands::Init => commands::init::init_handler(),
-        cli::Commands::Directory(args) => commands::directory::directory_handler(args),
-        cli::Commands::Template(args) => commands::template::template_handler(args),
-        cli::Commands::Project(args) => commands::project::project_handler(args),
+        cli::Commands::Directory { action } => commands::directory::directory_handler(action),
+        cli::Commands::Template { action } => commands::template::template_handler(action),
+        cli::Commands::Project { action } => commands::project::project_handler(action),
         cli::Commands::List(args) => commands::list::list_handler(args),
         cli::Commands::Freeze {
             name,
