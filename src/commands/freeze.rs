@@ -36,7 +36,7 @@ impl Window {
                         .to_string()
                         .replace('\\', "\\\\")
                         .replace('"', "\\\"");
-                    format!("cd {}", escaped_name)
+                    format!("cd {escaped_name}")
                 }
             })
             .collect();
@@ -194,7 +194,11 @@ impl File {
             return Err(String::from("File name can't contain /"));
         }
 
-        let file_name = if name.ends_with(".yaml") {
+        let extension = Path::new(&name).extension();
+        let is_yaml = extension.is_some_and(|extension| {
+            extension.eq_ignore_ascii_case("yaml") || extension.eq_ignore_ascii_case("yml")
+        });
+        let file_name = if is_yaml {
             name
         } else {
             format!("{name}.yaml")
@@ -219,11 +223,11 @@ impl ConfigWriter for File {
             serde_yaml::to_string(&project).map_err(|err| format!("Can't create yaml: {err}"))?;
 
         match std::fs::write(&self.0, yaml) {
-            Ok(_) => Ok(Some(format!(
+            Ok(()) => Ok(Some(format!(
                 "Froze configuration into {}",
                 self.0.display()
             ))),
-            Err(err) => Err(format!("Can't write file: {}", err)),
+            Err(err) => Err(format!("Can't write file: {err}")),
         }
     }
 }
@@ -253,7 +257,7 @@ fn new_config_writer<T: fmt::Display>(
     }
 }
 
-pub fn freeze_handler(name: Option<String>, force: bool, file_name: Option<String>, stdout: bool) {
+pub fn freeze_handler(name: Option<String>, force: bool, file_name: Option<&str>, stdout: bool) {
     let windows = current_windows();
     let most_used_path = windows
         .iter()
@@ -267,17 +271,14 @@ pub fn freeze_handler(name: Option<String>, force: bool, file_name: Option<Strin
     let most_used_path = most_used_path.as_path();
     let name = name
         .or_else(|| {
-            most_used_path
-                .file_name()
-                .and_then(|os_str| os_str.to_str())
-                .map(|s| s.to_string())
+            let file_name = most_used_path.file_name()?;
+            let str = file_name.to_str()?;
+            Some(str.to_string())
         })
         .unwrap_or_else(|| String::from("Unnamed Project"));
 
-    let writer = match new_config_writer(stdout, file_name.as_ref().unwrap_or(&name), force) {
-        Ok(f) => f,
-        Err(err) => exit!(1, "{err}"),
-    };
+    let writer = new_config_writer(stdout, file_name.unwrap_or(&name), force)
+        .unwrap_or_else(|err| exit!(1, "{err}"));
 
     let template_wins: Vec<_> = windows
         .into_iter()

@@ -66,7 +66,7 @@ pub fn dir_name(path: &Path) -> String {
         .unwrap_or_default()
 }
 
-pub fn format_name(user_fmt: &Option<String>, name: &str) -> String {
+pub fn format_name(user_fmt: Option<&str>, name: &str) -> String {
     user_fmt
         .as_ref()
         .map_or_else(|| name.to_string(), |fmt| fmt.replace("{}", name))
@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_absolute_path() {
-        let home = std::env::var("HOME").unwrap();
+        let home = std::env::var("HOME").unwrap_or_else(|_| "TEST_HOME".to_string());
         assert_eq!(
             expand_tilde(PathBuf::from("~/foo")).unwrap(),
             PathBuf::from(format!("{}/foo", home))

@@ -17,9 +17,9 @@ pub fn session_exists<'a, S: Into<Cow<'a, str>>>(name: S) -> Result<bool, Error>
         .map(|x| x.success())
 }
 
-pub fn get_unused_name(name: String) -> String {
+pub fn get_unused_name(name: &str) -> String {
     let mut counter = 0;
-    let mut new_name = name.clone();
+    let mut new_name = name.to_string();
 
     while session_exists(&new_name).unwrap_or(false) {
         counter += 1;

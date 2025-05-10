@@ -1,7 +1,7 @@
 use crate::{
     cli::template::{StartTemplateArgs, TemplateCommands},
     helpers::{absolute_path, apply_if_some, dir_name, Exit},
-    templates::{apply_windows, parse_template_config},
+    templates::{apply_windows, find_template, parse_template_config},
     tmux,
     widgets::{heading::Heading, table::Table},
 };
@@ -31,17 +31,13 @@ fn list_handler(minimal: bool, all: bool) {
             println!("{}", template.name);
         } else {
             println!("{}", Heading(template.name));
-            println!("{}", Table::from_iter(template.windows.iter()));
+            println!("{}", template.windows.iter().collect::<Table<_, _>>());
         }
     }
 }
 
 fn start_handler(args: StartTemplateArgs) {
-    let templates = parse_template_config();
-    let template = templates
-        .into_iter()
-        .find(|temp| temp.name == args.template_name)
-        .exit(1, "No template found");
+    let template = find_template(&args.template_name).exit(1, "No template found");
 
     let detached = args.detached;
     let resolved_path = args.directory.and_then(|p| absolute_path(&p).ok());
@@ -60,7 +56,7 @@ fn start_handler(args: StartTemplateArgs) {
         return;
     }
 
-    let (new_session_cmd, name) = resolve_cmd_name(&resolved_path, args.name, name);
+    let (new_session_cmd, name) = resolve_cmd_name(resolved_path.as_ref(), args.name, name);
 
     let initial_tmux = apply_if_some(
         Tmux::new().add_command(new_session_cmd),
@@ -68,18 +64,18 @@ fn start_handler(args: StartTemplateArgs) {
         |tmux, cmd| tmux.add_command(cmd),
     );
 
-    let tmux = apply_windows(initial_tmux, &template.windows, &resolved_path);
+    let tmux = apply_windows(initial_tmux, &template.windows, resolved_path.as_ref());
 
     tmux.output().exit(1, "Could not start Tmux-session");
 }
 
 fn resolve_cmd_name(
-    path: &Option<PathBuf>,
+    path: Option<&PathBuf>,
     name: Option<String>,
     template_name: String,
 ) -> (TmuxCommand<'static>, String) {
     if let Some(p) = path {
-        let session_name = tmux::get_unused_name(name.unwrap_or_else(|| dir_name(p)));
+        let session_name = tmux::get_unused_name(&name.unwrap_or_else(|| dir_name(p)));
         return (
             NewSession::new()
                 .detached()
@@ -90,7 +86,7 @@ fn resolve_cmd_name(
         );
     }
 
-    let session_name = tmux::get_unused_name(name.unwrap_or(template_name));
+    let session_name = tmux::get_unused_name(&name.unwrap_or(template_name));
     (
         NewSession::new()
             .detached()

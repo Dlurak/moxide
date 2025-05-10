@@ -18,7 +18,7 @@ impl<T: fmt::Display, U: fmt::Display> Table<T, U> {
     }
 
     pub fn extend_table(&mut self, other: Self) {
-        self.extend(other.rows)
+        self.extend(other.rows);
     }
 }
 
@@ -70,21 +70,13 @@ where
             .iter()
             .map(|row| (row.0.to_string(), row.1.to_string()))
             .unzip();
-        let key_width = keys.iter().map(|k| k.len()).max().unwrap_or(0);
-        let val_width = values.iter().map(|v| v.len()).max().unwrap_or(0);
+        let key_width = keys.iter().map(String::len).max().unwrap_or(0);
+        let val_width = values.iter().map(String::len).max().unwrap_or(0);
 
         let formatted_rows: Vec<String> = keys
             .iter()
             .zip(values.iter())
-            .map(|(key, value)| {
-                format!(
-                    "│ {:<width$} │ {:<val_width$} │",
-                    key,
-                    value,
-                    width = key_width,
-                    val_width = val_width
-                )
-            })
+            .map(|(key, value)| format!("│ {key:<key_width$} │ {value:<val_width$} │"))
             .collect();
 
         let top_border = format!("┌─{}─┬─{}─┐", "─".repeat(key_width), "─".repeat(val_width),);

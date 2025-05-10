@@ -33,7 +33,7 @@ impl fmt::Display for Directory {
 impl From<Directory> for Table<String, String> {
     fn from(value: Directory) -> Self {
         let first_col = match (&value.icon, &value.name) {
-            (Some(icon), Some(name)) => format!("{} {}", icon, name),
+            (Some(icon), Some(name)) => format!("{icon} {name}"),
             (Some(icon), None) => icon.clone(),
             (None, Some(name)) => name.clone(),
             (None, None) => "No name".to_string(),

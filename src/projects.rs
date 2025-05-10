@@ -1,7 +1,7 @@
 use crate::{
     exit,
     helpers::{get_config_dir, Exit},
-    templates::{parse_template_config, Window},
+    templates::{find_template, Window},
     widgets::table::Table,
 };
 use serde::{Deserialize, Serialize};
@@ -26,10 +26,7 @@ impl From<ProjectSetup> for Vec<Window> {
     fn from(val: ProjectSetup) -> Self {
         match val {
             ProjectSetup::Template(template_name) => {
-                let all_templates = parse_template_config();
-                let template = all_templates
-                    .into_iter()
-                    .find(|t| t.name == template_name)
+                let template = find_template(&template_name)
                     .unwrap_or_else(|| exit!(1, "Template {} could not be found", template_name));
 
                 template.windows
@@ -89,6 +86,37 @@ impl<'de> Deserialize<'de> for Project {
             setup,
         })
     }
+}
+
+pub fn find_project(name: &str) -> Option<Project> {
+    let projects_dir = get_config_dir().join("projects/");
+    let file_path = projects_dir.join(format!("{name}.yaml"));
+    let is_valid_path = file_path.exists() && file_path.is_file();
+    let matching_path = is_valid_path.then_some(file_path);
+
+    let matching_project = matching_path.and_then(|path| {
+        let content = fs::read_to_string(&path).ok()?;
+        let project = serde_yaml::from_str::<Project>(&content).ok()?;
+        (project.name == name).then_some(project)
+    });
+
+    if matching_project.is_some() {
+        return matching_project;
+    }
+
+    fs::read_dir(&projects_dir)
+        .exit(1, "Can't read template config")
+        .find_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            if !path.is_file() {
+                return None;
+            }
+
+            let content = fs::read_to_string(&path).ok()?;
+            let project = serde_yaml::from_str::<Project>(&content).ok()?;
+            (project.name == name).then_some(project)
+        })
 }
 
 pub fn parse_project_config() -> Vec<Project> {

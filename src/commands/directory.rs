@@ -11,7 +11,7 @@ use tmux_interface::{NewSession, Tmux};
 pub fn directory_handler(action: DirectoryCommands) {
     match action {
         DirectoryCommands::List { minimal } => list_handler(minimal),
-        DirectoryCommands::Start(args) => start_handler(args),
+        DirectoryCommands::Start(args) => start_handler(&args),
     }
 }
 
@@ -25,7 +25,7 @@ fn list_handler(minimal: bool) {
 
     let tables = dirs.into_iter().map(Table::from);
     let table: Table<_, _> = tables.collect();
-    println!("{}", table);
+    println!("{table}");
 }
 
 fn format_dirs_minimal(dirs: Vec<Directory>) -> String {
@@ -40,8 +40,8 @@ fn format_dirs_minimal(dirs: Vec<Directory>) -> String {
     dirs_formatted.join("\n")
 }
 
-fn start_handler(args: StartDirectoryArgs) {
-    let (name, path) = resolve_dir_path(&args);
+fn start_handler(args: &StartDirectoryArgs) {
+    let (name, path) = resolve_dir_path(args);
     let exists = session_exists(&name).unwrap_or(false);
 
     let mut tmux = Tmux::new();

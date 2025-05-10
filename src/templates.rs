@@ -1,5 +1,5 @@
 use crate::{
-    helpers::{apply_if_some, get_config_dir, Exit},
+    helpers::{get_config_dir, Exit},
     widgets::table::Table,
 };
 use serde::{Deserialize, Serialize};
@@ -28,6 +28,37 @@ impl From<&Window> for Table<String, String> {
     }
 }
 
+pub fn find_template(name: &str) -> Option<Template> {
+    let templates_dir = get_config_dir().join("templates/");
+    let file_path = templates_dir.join(format!("{name}.yaml"));
+    let is_valid_path = file_path.exists() && file_path.is_file();
+    let matching_path = is_valid_path.then_some(file_path);
+
+    let matching_template = matching_path.and_then(|path| {
+        let content = fs::read_to_string(&path).ok()?;
+        let template = serde_yaml::from_str::<Template>(&content).ok()?;
+        (template.name == name).then_some(template)
+    });
+
+    if matching_template.is_some() {
+        return matching_template;
+    }
+
+    fs::read_dir(&templates_dir)
+        .exit(1, "Can't read template config")
+        .find_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            if !path.is_file() {
+                return None;
+            }
+
+            let content = fs::read_to_string(&path).ok()?;
+            let template = serde_yaml::from_str::<Template>(&content).ok()?;
+            (template.name == name).then_some(template)
+        })
+}
+
 pub fn parse_template_config() -> Vec<Template> {
     let templates_content =
         fs::read_dir(get_config_dir().join("templates/")).exit(1, "Can't read template config");
@@ -49,25 +80,24 @@ pub fn parse_template_config() -> Vec<Template> {
 pub fn apply_windows<'a>(
     tmux: Tmux<'a>,
     windows: &'a [Window],
-    dir: &'a Option<PathBuf>,
+    dir: Option<&'a PathBuf>,
 ) -> Tmux<'a> {
     let enumerated = windows.iter().enumerate();
     enumerated.fold(tmux, |tmux, (window_idx, window)| {
         let cmd = build_tmux_command(window_idx, window, dir);
+        let tmux = add_panes_to_tmux(tmux.add_command(cmd), &window.panes, dir);
 
-        let layout = window.layout.as_ref();
-        let layout_cmd = layout.map(|layout| TmuxCommand::select_layout().layout_name(layout));
-
-        let tmux = tmux.add_command(cmd);
-        apply_if_some(
-            add_panes_to_tmux(tmux, &window.panes, dir),
-            layout_cmd,
-            |tmux, cmd| tmux.add_command(cmd),
-        )
+        match window.layout.as_ref() {
+            Some(layout) => {
+                let layout_cmd = TmuxCommand::select_layout().layout_name(layout);
+                tmux.add_command(layout_cmd)
+            }
+            None => tmux,
+        }
     })
 }
 
-fn add_panes_to_tmux<'a>(tmux: Tmux<'a>, panes: &[String], dir: &'a Option<PathBuf>) -> Tmux<'a> {
+fn add_panes_to_tmux<'a>(tmux: Tmux<'a>, panes: &[String], dir: Option<&'a PathBuf>) -> Tmux<'a> {
     let enumerated = panes.iter().enumerate();
 
     enumerated.fold(tmux, |tmux, (pane_idx, command)| {
@@ -80,19 +110,21 @@ fn add_panes_to_tmux<'a>(tmux: Tmux<'a>, panes: &[String], dir: &'a Option<PathB
         };
 
         tmux.add_command(cmd)
-            .add_command(TmuxCommand::send_keys().key(format!("{}\r", command)))
+            .add_command(TmuxCommand::send_keys().key(format!("{command}\r")))
     })
 }
 
 fn build_tmux_command<'a>(
     window_idx: usize,
     window: &'a Window,
-    dir: &'a Option<PathBuf>,
+    dir: Option<&'a PathBuf>,
 ) -> TmuxCommand<'a> {
     if window_idx == 0 {
-        window.name.as_ref().map_or_else(TmuxCommand::new, |name| {
-            TmuxCommand::rename_window().new_name(name).into()
-        })
+        window
+            .name
+            .as_ref()
+            .map(|name| TmuxCommand::rename_window().new_name(name).into())
+            .unwrap_or_default()
     } else {
         let name = window.name.as_ref();
         let new_win = name.map_or_else(TmuxCommand::new_window, |name| {

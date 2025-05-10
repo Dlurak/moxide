@@ -1,6 +1,7 @@
 use crate::{
     cli::project::{ProjectCommands, ProjectStartArgs},
     helpers::{self, apply_if_some, Exit},
+    projects::find_project,
     projects::parse_project_config,
     templates::apply_windows,
     tmux,
@@ -27,11 +28,7 @@ fn list_handler(minimal: bool) {
 }
 
 fn start_handler(args: ProjectStartArgs) {
-    let projects = parse_project_config();
-    let project = projects
-        .into_iter()
-        .find(|proj| proj.name == args.name)
-        .exit(1, "Project could not be found");
+    let project = find_project(&args.name).exit(1, "Project could not be found");
 
     let detached = args.detached;
 
@@ -46,7 +43,7 @@ fn start_handler(args: ProjectStartArgs) {
         return;
     }
 
-    let name = tmux::get_unused_name(project.name);
+    let name = tmux::get_unused_name(&project.name);
     let windows = Vec::from(project.setup);
     let path = helpers::absolute_path(&project.root_dir).exit(1, "The path could not be found");
 
@@ -61,7 +58,7 @@ fn start_handler(args: ProjectStartArgs) {
         |tmux, cmd| tmux.add_command(cmd),
     );
 
-    apply_windows(initial_tmux, &windows, &Some(path))
+    apply_windows(initial_tmux, &windows, Some(&path))
         .output()
         .exit(1, "Could not start Tmux-session");
 }

@@ -24,6 +24,6 @@ fn main() {
             force,
             file_name,
             stdout,
-        } => commands::freeze::freeze_handler(name, force, file_name, stdout),
+        } => commands::freeze::freeze_handler(name, force, file_name.as_deref(), stdout),
     }
 }
