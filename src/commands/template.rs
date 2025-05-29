@@ -1,5 +1,6 @@
 use crate::{
     cli::template::{StartTemplateArgs, TemplateCommands},
+    directories::parse_directory_config,
     helpers::{absolute_path, apply_if_some, dir_name, Exit},
     templates::{apply_windows, find_template, parse_template_config},
     tmux,
@@ -40,7 +41,16 @@ fn start_handler(args: StartTemplateArgs) {
     let template = find_template(&args.template_name).exit(1, "No template found");
 
     let detached = args.detached;
-    let resolved_path = args.directory.and_then(|p| absolute_path(&p).ok());
+
+    let resolved_path = args.directory.and_then(|dir| {
+        let path = parse_directory_config()
+            .into_iter()
+            .find(|d| d.get_name() == dir)
+            .map(|dir| dir.path)
+            .unwrap_or_else(|| PathBuf::from(dir));
+        absolute_path(&path).ok()
+    });
+
     let name = resolved_path
         .as_ref()
         .map_or(template.name, |p| dir_name(p));

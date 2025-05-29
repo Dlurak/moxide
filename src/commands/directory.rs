@@ -63,7 +63,9 @@ fn start_handler(args: &StartDirectoryArgs) {
 
 fn resolve_dir_path(cli_args: &StartDirectoryArgs) -> (String, PathBuf) {
     let dirs = parse_directory_config();
-    let dir = dirs.iter().find(|d| d.get_name() == cli_args.directory);
+    let dir = dirs
+        .into_iter()
+        .find(|dir| dir.get_name() == cli_args.directory);
     let user_name = cli_args.name.clone();
 
     match dir {

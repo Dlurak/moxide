@@ -67,9 +67,7 @@ pub fn dir_name(path: &Path) -> String {
 }
 
 pub fn format_name(user_fmt: Option<&str>, name: &str) -> String {
-    user_fmt
-        .as_ref()
-        .map_or_else(|| name.to_string(), |fmt| fmt.replace("{}", name))
+    user_fmt.map_or_else(|| name.to_string(), |fmt| fmt.replace("{}", name))
 }
 
 /// Applies `predicate` to `base` and `data` if `data` is `Some`, otherwise returns `base`.

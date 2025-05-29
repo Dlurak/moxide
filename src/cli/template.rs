@@ -1,5 +1,4 @@
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
 
 #[derive(Subcommand, Debug)]
 pub enum TemplateCommands {
@@ -25,7 +24,7 @@ pub struct StartTemplateArgs {
 
     /// The directory to start it in
     #[arg(long, alias = "dir")]
-    pub directory: Option<PathBuf>,
+    pub directory: Option<String>,
 
     /// Specify the name of the tmux session
     ///
