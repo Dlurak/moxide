@@ -4,7 +4,11 @@ use crate::{
     helpers::{get_config_dir, Exit},
     widgets::table::Table,
 };
-use std::{collections::HashMap, fs, path::PathBuf};
+use std::{
+    collections::{hash_map::Keys, HashMap},
+    fs,
+    path::PathBuf,
+};
 
 #[derive(Debug, Default, Clone)]
 pub struct Directories(HashMap<String, PathBuf>);
@@ -12,6 +16,10 @@ pub struct Directories(HashMap<String, PathBuf>);
 impl Directories {
     pub fn get(&self, name: &str) -> Option<&PathBuf> {
         self.0.get(name)
+    }
+
+    pub fn names(&self) -> Keys<String, PathBuf> {
+        self.0.keys()
     }
 }
 
