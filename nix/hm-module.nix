@@ -22,14 +22,11 @@ in {
     programs.moxide.enable = lib.mkEnableOption "Enable moxide (config)";
 
     programs.moxide.paths = lib.mkOption {
-      type = with lib.types; listOf (attrsOf str);
-      default = [
-        {
-          name = "Home";
-          path = "~/";
-        }
-      ];
-      description = "List of directories with name and path to include in the YAML file";
+      type = with lib.types; attrsOf str;
+      default = {
+        Home = "~/";
+      };
+      description = "Attribute-set of directories with name -> path to include in the YAML file";
     };
     programs.moxide.templates = lib.mkOption {
       default = {
@@ -50,6 +47,13 @@ in {
 
   config = let
     c = config.programs.moxide;
+	pathGenerate = paths: let
+		keys = builtins.attrNames paths;
+		entries = map (key: let
+			keyTrimmed = lib.trim key;
+			value = paths.${key};
+		in if  keyTrimmed == "" then value else key + ": " + value) keys;
+	in lib.concatLines entries;
   in
     lib.mkIf config.programs.moxide.enable
     {
@@ -58,7 +62,7 @@ in {
         projectTemplateFileName = name: ".config/moxide/projects/${name}.yaml";
         addName = name: attr: {inherit name;} // attr;
 
-        directories.".config/moxide/directories.yaml".source = yamlFormat.generate "directories.yaml" c.paths;
+        directories.".config/moxide/directories.yaml".text = pathGenerate c.paths;
         templates =
           transformAttrs (c.templates)
           ({key, ...}: templateFileName key)
