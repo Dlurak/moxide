@@ -12,7 +12,7 @@ pub fn list_handler(args: ListCli) {
     let dirs = directories::parse_directory_config().exit_err(1);
     let dirs = dirs
         .names()
-        .filter(|name| args.running || session_exists(*name).unwrap_or(false));
+        .filter(|name| !args.running || session_exists(*name).unwrap_or(false));
 
     if args.running {
         projects.retain(|project| session_exists(&project.name).unwrap_or(false));

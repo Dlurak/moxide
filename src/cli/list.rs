@@ -21,7 +21,7 @@ pub struct ListCli {
     #[arg(short, long, default_value_t = false)]
     pub all: bool,
 
-    /// Show running Moxide sessions
+    /// Show only running Moxide sessions
     #[arg(short, long, default_value_t = false)]
     pub running: bool,
 }
