@@ -5,6 +5,10 @@ use std::{
 };
 
 pub fn get_config_dir() -> PathBuf {
+    if let Ok(dir) = env::var("MOXIDE_CONFIG") {
+        return PathBuf::from(dir);
+    }
+
     env::var("XDG_CONFIG_HOME")
         .ok()
         .map(PathBuf::from)
