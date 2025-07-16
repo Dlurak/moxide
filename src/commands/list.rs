@@ -1,9 +1,15 @@
-use crate::{cli::list::ListCli, directories, helpers::format_name, projects, templates};
+use crate::{cli::list::ListCli, directories, helpers::format_name, projects, templates, tmux::session_exists};
 
 pub fn list_handler(args: ListCli) {
-    let projects = projects::parse_project_config();
-    let templates = templates::parse_template_config();
-    let dirs = directories::parse_directory_config();
+    let mut projects = projects::parse_project_config();
+    let mut templates = templates::parse_template_config();
+    let mut dirs = directories::parse_directory_config();
+
+    if args.running {
+        projects.retain(|project| session_exists(&project.name).unwrap_or(false));
+        templates.retain(|template| session_exists(&template.name).unwrap_or(false));
+        dirs.retain(|dir| session_exists(dir.get_name()).unwrap_or(false));
+    }
 
     for project in projects {
         println!(
