@@ -1,7 +1,7 @@
 use crate::{
     cli::directory::{DirectoryCommands, StartDirectoryArgs},
-    directories::{parse_directory_config, Directory},
-    helpers::{absolute_path, dir_name, Exit},
+    directories::{parse_directory_config, Directories},
+    helpers::{absolute_path, dir_name, Exit, ExitErr},
     tmux::{attach, session_exists},
     widgets::table::Table,
 };
@@ -16,25 +16,21 @@ pub fn directory_handler(action: DirectoryCommands) {
 }
 
 fn list_handler(minimal: bool) {
-    let dirs = parse_directory_config();
+    let dirs = parse_directory_config().exit_err(1);
 
     if minimal {
         println!("{}", format_dirs_minimal(dirs));
         return;
     }
 
-    let tables = dirs.into_iter().map(Table::from);
-    let table: Table<_, _> = tables.collect();
+    let table: Table<_, _> = dirs.into();
     println!("{table}");
 }
 
-fn format_dirs_minimal(dirs: Vec<Directory>) -> String {
+fn format_dirs_minimal(dirs: Directories) -> String {
     let dirs_formatted: Vec<_> = dirs
         .into_iter()
-        .map(|dir| {
-            let name = dir.name.unwrap_or_else(|| String::from("No name"));
-            format!("\"{}\" {}", name, dir.path.display())
-        })
+        .map(|(name, path)| format!("\"{}\" {}", name, path.display()))
         .collect();
 
     dirs_formatted.join("\n")
@@ -62,16 +58,16 @@ fn start_handler(args: &StartDirectoryArgs) {
 }
 
 fn resolve_dir_path(cli_args: &StartDirectoryArgs) -> (String, PathBuf) {
-    let dirs = parse_directory_config();
-    let dir = dirs
-        .into_iter()
-        .find(|dir| dir.get_name() == cli_args.directory);
+    let name = &cli_args.directory;
+
+    let dirs = parse_directory_config().exit_err(1);
+    let dir = dirs.get(name);
     let user_name = cli_args.name.clone();
 
     match dir {
         Some(dir) => (
-            user_name.unwrap_or_else(|| dir.get_name().to_string()),
-            absolute_path(&dir.path).exit(1, "The path could not be generated"),
+            user_name.unwrap_or_else(|| name.clone()),
+            absolute_path(dir).exit(1, "The path could not be generated"),
         ),
         None => {
             let relative_path = PathBuf::from(&cli_args.directory);

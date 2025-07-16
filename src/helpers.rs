@@ -43,10 +43,18 @@ pub fn absolute_path(path: &Path) -> std::io::Result<PathBuf> {
 pub trait Exit<T> {
     fn exit<M: std::fmt::Display>(self, code: i32, msg: M) -> T;
 }
+pub trait ExitErr<T> {
+    fn exit_err(self, code: i32) -> T;
+}
 
 impl<T, E> Exit<T> for Result<T, E> {
     fn exit<M: std::fmt::Display>(self, code: i32, msg: M) -> T {
         self.unwrap_or_else(|_| exit!(code, "{}", msg))
+    }
+}
+impl<T, E: std::error::Error> ExitErr<T> for Result<T, E> {
+    fn exit_err(self, code: i32) -> T {
+        self.unwrap_or_else(|err| exit!(code, "{}", err))
     }
 }
 impl<T> Exit<T> for Option<T> {

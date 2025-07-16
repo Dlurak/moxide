@@ -1,9 +1,14 @@
-use crate::{cli::list::ListCli, directories, helpers::format_name, projects, templates};
+use crate::{
+    cli::list::ListCli,
+    directories,
+    helpers::{format_name, ExitErr},
+    projects, templates,
+};
 
 pub fn list_handler(args: ListCli) {
     let projects = projects::parse_project_config();
     let templates = templates::parse_template_config();
-    let dirs = directories::parse_directory_config();
+    let dirs = directories::parse_directory_config().exit_err(1);
 
     for project in projects {
         println!(
@@ -22,9 +27,7 @@ pub fn list_handler(args: ListCli) {
         }
     }
 
-    for dir in dirs {
-        if let Some(name) = dir.name {
-            println!("{}", format_name(args.format_directory.as_deref(), &name));
-        }
+    for (name, _) in dirs {
+        println!("{}", format_name(args.format_directory.as_deref(), &name));
     }
 }
