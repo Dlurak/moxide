@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -19,18 +20,6 @@ impl<T: fmt::Display, U: fmt::Display> Table<T, U> {
 
     pub fn extend_table(&mut self, other: Self) {
         self.extend(other.rows);
-    }
-}
-
-impl<T: fmt::Display, U: fmt::Display> Iterator for Table<T, U> {
-    type Item = (T, U);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.rows.is_empty() {
-            None
-        } else {
-            Some(self.rows.remove(0))
-        }
     }
 }
 
@@ -70,24 +59,19 @@ where
             .iter()
             .map(|row| (row.0.to_string(), row.1.to_string()))
             .unzip();
+
         let key_width = keys.iter().map(String::len).max().unwrap_or(0);
         let val_width = values.iter().map(String::len).max().unwrap_or(0);
 
-        let formatted_rows: Vec<String> = keys
+        let formatted_rows = self
+            .rows
             .iter()
-            .zip(values.iter())
             .map(|(key, value)| format!("│ {key:<key_width$} │ {value:<val_width$} │"))
-            .collect();
+            .join("\n");
 
         let top_border = format!("┌─{}─┬─{}─┐", "─".repeat(key_width), "─".repeat(val_width),);
         let bottom_border = format!("└─{}─┴─{}─┘", "─".repeat(key_width), "─".repeat(val_width),);
 
-        write!(
-            f,
-            "{}\n{}\n{}",
-            top_border,
-            formatted_rows.join("\n"),
-            bottom_border,
-        )
+        write!(f, "{}\n{}\n{}", top_border, formatted_rows, bottom_border,)
     }
 }
